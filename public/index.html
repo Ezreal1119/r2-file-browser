@@ -1,0 +1,2191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Urovo Tools Download</title>
+
+    <style>
+      :root {
+        color-scheme: dark;
+
+        --background: #080b12;
+        --surface: rgba(20, 25, 38, 0.72);
+        --surface-hover: rgba(31, 38, 56, 0.84);
+        --border: rgba(255, 255, 255, 0.09);
+        --border-strong: rgba(255, 255, 255, 0.15);
+        --text: #f7f8fc;
+        --muted: #949caf;
+        --accent: #7c8cff;
+        --accent-light: #a8b2ff;
+        --success: #63d6a0;
+        --danger: #ff7d8b;
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-height: 100%;
+        background: var(--background);
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        overflow-x: hidden;
+        font-family:
+          Inter,
+          ui-sans-serif,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(
+            circle at 15% 15%,
+            rgba(91, 105, 255, 0.22),
+            transparent 33%
+          ),
+          radial-gradient(
+            circle at 85% 10%,
+            rgba(58, 194, 170, 0.14),
+            transparent 30%
+          ),
+          radial-gradient(
+            circle at 50% 100%,
+            rgba(127, 83, 255, 0.12),
+            transparent 38%
+          ),
+          var(--background);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.2;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+          linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.025) 1px,
+            transparent 1px
+          );
+        background-size: 32px 32px;
+        mask-image: linear-gradient(to bottom, black, transparent);
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .page {
+        position: relative;
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 72px 0 60px;
+      }
+
+      .header {
+        margin-bottom: 32px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+        padding: 7px 11px;
+        color: var(--accent-light);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border: 1px solid rgba(124, 140, 255, 0.25);
+        border-radius: 999px;
+        background: rgba(124, 140, 255, 0.08);
+      }
+
+      .eyebrow-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--success);
+        box-shadow: 0 0 12px rgba(99, 214, 160, 0.9);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(36px, 6vw, 62px);
+        line-height: 1.02;
+        letter-spacing: -0.045em;
+      }
+
+      .subtitle {
+        max-width: 660px;
+        margin: 18px 0 0;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.7;
+      }
+
+      .browser {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 18px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .search-controls {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        min-width: 0;
+        gap: 10px;
+      }
+
+      .search-wrapper {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .search-icon {
+        position: absolute;
+        top: 50%;
+        left: 16px;
+        width: 20px;
+        height: 20px;
+        color: var(--muted);
+        transform: translateY(-50%);
+        pointer-events: none;
+      }
+
+      .search-input {
+        width: 100%;
+        height: 48px;
+        padding: 0 48px;
+        color: var(--text);
+        outline: none;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.18);
+        transition:
+          border-color 160ms ease,
+          box-shadow 160ms ease,
+          background 160ms ease;
+      }
+
+      .search-input::placeholder {
+        color: #70788b;
+      }
+
+      .search-input::-webkit-search-cancel-button {
+        -webkit-appearance: none;
+        appearance: none;
+        display: none;
+      }
+
+      .search-input::-ms-clear {
+        display: none;
+      }
+
+      .search-input:focus {
+        border-color: rgba(124, 140, 255, 0.68);
+        background: rgba(0, 0, 0, 0.28);
+        box-shadow: 0 0 0 4px rgba(124, 140, 255, 0.12);
+      }
+
+      .clear-button {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        display: none;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        color: var(--muted);
+        border: 0;
+        border-radius: 9px;
+        background: transparent;
+        transform: translateY(-50%);
+      }
+
+      .clear-button:hover {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.07);
+      }
+
+      .clear-button.visible {
+        display: grid;
+        place-items: center;
+      }
+
+      .search-mode {
+        display: inline-grid;
+        grid-template-columns: repeat(2, 1fr);
+        flex: 0 0 auto;
+        height: 48px;
+        padding: 4px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.18);
+      }
+
+      .search-mode-button {
+        min-width: 57px;
+        padding: 0 12px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: 0.055em;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        transition:
+          color 160ms ease,
+          background 160ms ease,
+          box-shadow 160ms ease;
+      }
+
+      .search-mode-button:hover:not(.active) {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .search-mode-button.active {
+        color: var(--accent-light);
+        background: rgba(124, 140, 255, 0.14);
+        box-shadow:
+          inset 0 0 0 1px rgba(124, 140, 255, 0.2),
+          0 4px 14px rgba(0, 0, 0, 0.16);
+      }
+
+      .search-mode-button:focus-visible {
+        outline: 2px solid rgba(124, 140, 255, 0.72);
+        outline-offset: 1px;
+      }
+
+      .refresh-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 48px;
+        padding: 0 17px;
+        color: var(--text);
+        white-space: nowrap;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.045);
+        transition:
+          background 160ms ease,
+          border-color 160ms ease,
+          transform 160ms ease;
+      }
+
+      .refresh-button:hover {
+        border-color: var(--border-strong);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .refresh-button:active {
+        transform: scale(0.98);
+      }
+
+      .refresh-button svg {
+        width: 17px;
+        height: 17px;
+      }
+
+      .refresh-button.loading svg {
+        animation: spin 900ms linear infinite;
+      }
+
+      .sort-control {
+        position: relative;
+        flex: 0 0 auto;
+      }
+
+      .sort-icon {
+        position: absolute;
+        top: 50%;
+        left: 14px;
+        width: 17px;
+        height: 17px;
+        color: var(--muted);
+        transform: translateY(-50%);
+        pointer-events: none;
+      }
+
+      .sort-select {
+        height: 48px;
+        padding: 0 36px 0 40px;
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 600;
+        appearance: none;
+        cursor: pointer;
+        outline: none;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background:
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23949caf' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+            no-repeat right 12px center,
+          rgba(0, 0, 0, 0.18);
+        transition:
+          border-color 160ms ease,
+          box-shadow 160ms ease,
+          background 160ms ease;
+      }
+
+      .sort-select:hover {
+        border-color: var(--border-strong);
+        background:
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a8b2ff' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+            no-repeat right 12px center,
+          rgba(0, 0, 0, 0.24);
+      }
+
+      .sort-select:focus {
+        border-color: rgba(124, 140, 255, 0.68);
+        box-shadow: 0 0 0 4px rgba(124, 140, 255, 0.12);
+      }
+
+      .sort-select option {
+        color: #111;
+        background: #fff;
+      }
+
+      .summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 47px;
+        padding: 0 20px;
+        color: var(--muted);
+        font-size: 13px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .summary-path {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .summary-count {
+        flex-shrink: 0;
+        margin-left: 16px;
+      }
+
+      .file-list {
+        min-height: 180px;
+      }
+
+      .file-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 110px 160px auto;
+        align-items: center;
+        gap: 20px;
+        min-height: 76px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--border);
+        transition: background 150ms ease;
+      }
+
+      .file-row:last-child {
+        border-bottom: 0;
+      }
+
+      .file-row:hover {
+        background: var(--surface-hover);
+      }
+
+      .file-main {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        gap: 14px;
+      }
+
+      .file-icon-button {
+        display: grid;
+        flex: 0 0 42px;
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        place-items: center;
+        color: var(--accent-light);
+        border: 1px solid rgba(124, 140, 255, 0.2);
+        border-radius: 13px;
+        background: rgba(124, 140, 255, 0.09);
+        transition:
+          background 150ms ease,
+          border-color 150ms ease,
+          transform 150ms ease;
+      }
+
+      .file-icon-button:hover {
+        border-color: rgba(124, 140, 255, 0.45);
+        background: rgba(124, 140, 255, 0.16);
+      }
+
+      .file-icon-button:active {
+        transform: scale(0.96);
+      }
+
+      .file-icon-button.has-description {
+        color: var(--success);
+        border-color: rgba(99, 214, 160, 0.42);
+        background: rgba(99, 214, 160, 0.12);
+      }
+
+      .file-icon-button.has-description:hover {
+        border-color: rgba(99, 214, 160, 0.7);
+        background: rgba(99, 214, 160, 0.2);
+      }
+
+      .file-icon-button svg {
+        width: 21px;
+        height: 21px;
+      }
+
+      .file-details {
+        min-width: 0;
+      }
+
+      .file-link {
+        display: block;
+        overflow: hidden;
+        color: var(--text);
+        font-size: 14px;
+        font-weight: 620;
+        line-height: 1.4;
+        text-decoration: none;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .file-link:hover {
+        color: var(--accent-light);
+      }
+
+      .file-key {
+        overflow: hidden;
+        margin-top: 5px;
+        color: #747d90;
+        font-size: 12px;
+        line-height: 1.35;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .file-size,
+      .file-date {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .file-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .copy-button,
+      .delete-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        height: 38px;
+        padding: 0 13px;
+        font-size: 13px;
+        font-weight: 650;
+        border-radius: 11px;
+        transition:
+          background 150ms ease,
+          border-color 150ms ease,
+          color 150ms ease;
+      }
+
+      .copy-button {
+        color: var(--accent-light);
+        border: 1px solid rgba(124, 140, 255, 0.24);
+        background: rgba(124, 140, 255, 0.08);
+      }
+
+      .copy-button:hover {
+        border-color: rgba(124, 140, 255, 0.5);
+        background: rgba(124, 140, 255, 0.16);
+      }
+
+      .copy-button.copied {
+        color: var(--success);
+        border-color: rgba(99, 214, 160, 0.35);
+        background: rgba(99, 214, 160, 0.1);
+      }
+
+      .delete-button {
+        color: var(--danger);
+        border: 1px solid rgba(255, 125, 139, 0.28);
+        background: rgba(255, 125, 139, 0.08);
+      }
+
+      .delete-button:hover {
+        border-color: rgba(255, 125, 139, 0.55);
+        background: rgba(255, 125, 139, 0.16);
+      }
+
+      .copy-button svg,
+      .delete-button svg {
+        width: 15px;
+        height: 15px;
+      }
+
+      .state {
+        display: grid;
+        min-height: 260px;
+        padding: 40px 20px;
+        place-items: center;
+        text-align: center;
+      }
+
+      .state-content {
+        max-width: 430px;
+      }
+
+      .state-icon {
+        display: grid;
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 17px;
+        place-items: center;
+        color: var(--accent-light);
+        border: 1px solid var(--border);
+        border-radius: 17px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .state-icon svg {
+        width: 26px;
+        height: 26px;
+      }
+
+      .state-title {
+        margin: 0;
+        font-size: 17px;
+      }
+
+      .state-message {
+        margin: 9px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .loading-ring {
+        width: 34px;
+        height: 34px;
+        margin: 0 auto 18px;
+        border: 3px solid rgba(255, 255, 255, 0.08);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 850ms linear infinite;
+      }
+
+      .footer {
+        padding: 22px 4px 0;
+        color: #666f82;
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .toast {
+        position: fixed;
+        right: 22px;
+        bottom: 22px;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        max-width: calc(100% - 44px);
+        padding: 13px 16px;
+        color: var(--text);
+        font-size: 13px;
+        border: 1px solid var(--border-strong);
+        border-radius: 13px;
+        background: rgba(22, 27, 39, 0.94);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.38);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(12px);
+        transition:
+          opacity 180ms ease,
+          transform 180ms ease;
+        backdrop-filter: blur(18px);
+      }
+
+      .toast.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .toast-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--success);
+      }
+
+      .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 16px 20px;
+        border-top: 1px solid var(--border);
+      }
+
+      .pagination.hidden {
+        display: none;
+      }
+
+      .pagination-info {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .pagination-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 38px;
+        padding: 0 14px;
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid var(--border);
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.045);
+        transition:
+          background 150ms ease,
+          border-color 150ms ease,
+          opacity 150ms ease;
+      }
+
+      .pagination-button:hover:not(:disabled) {
+        border-color: var(--border-strong);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .pagination-button:disabled {
+        opacity: 0.38;
+        cursor: not-allowed;
+      }
+
+      .pagination-button svg {
+        width: 15px;
+        height: 15px;
+      }
+
+      .dialog-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: rgba(4, 6, 12, 0.72);
+        backdrop-filter: blur(8px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+      }
+
+      .dialog-overlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .dialog {
+        width: min(560px, 100%);
+        overflow: hidden;
+        border: 1px solid var(--border-strong);
+        border-radius: 20px;
+        background: rgba(18, 22, 34, 0.96);
+        box-shadow: 0 32px 80px rgba(0, 0, 0, 0.55);
+        transform: translateY(12px) scale(0.98);
+        transition: transform 180ms ease;
+      }
+
+      .dialog-overlay.visible .dialog {
+        transform: translateY(0) scale(1);
+      }
+
+      .dialog-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 20px 22px 16px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .dialog-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 650;
+      }
+
+      .dialog-close {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        place-items: center;
+        color: var(--muted);
+        font-size: 22px;
+        line-height: 1;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+      }
+
+      .dialog-close:hover {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.07);
+      }
+
+      .dialog-body {
+        padding: 18px 22px 22px;
+      }
+
+      .dialog-file-name {
+        overflow: hidden;
+        margin: 0 0 14px;
+        color: var(--muted);
+        font-size: 13px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .dialog-textarea {
+        width: 100%;
+        min-height: 160px;
+        padding: 14px 16px;
+        resize: vertical;
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.6;
+        outline: none;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.22);
+        transition:
+          border-color 160ms ease,
+          box-shadow 160ms ease;
+      }
+
+      .dialog-textarea:focus {
+        border-color: rgba(124, 140, 255, 0.68);
+        box-shadow: 0 0 0 4px rgba(124, 140, 255, 0.12);
+      }
+
+      .dialog-textarea:disabled {
+        opacity: 0.65;
+      }
+
+      .dialog-input {
+        width: 100%;
+        height: 46px;
+        padding: 0 16px;
+        color: var(--text);
+        font-size: 14px;
+        outline: none;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.22);
+        transition:
+          border-color 160ms ease,
+          box-shadow 160ms ease;
+      }
+
+      .dialog-input:focus {
+        border-color: rgba(124, 140, 255, 0.68);
+        box-shadow: 0 0 0 4px rgba(124, 140, 255, 0.12);
+      }
+
+      .dialog-input:disabled {
+        opacity: 0.65;
+      }
+
+      .dialog-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .dialog-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .dialog-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        height: 40px;
+        padding: 0 16px;
+        font-size: 13px;
+        font-weight: 650;
+        border: 1px solid var(--border);
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.045);
+        transition:
+          background 150ms ease,
+          border-color 150ms ease,
+          color 150ms ease;
+      }
+
+      .dialog-button:hover:not(:disabled) {
+        border-color: var(--border-strong);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .dialog-button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .dialog-button.primary {
+        color: var(--accent-light);
+        border-color: rgba(124, 140, 255, 0.35);
+        background: rgba(124, 140, 255, 0.12);
+      }
+
+      .dialog-button.primary:hover:not(:disabled) {
+        border-color: rgba(124, 140, 255, 0.55);
+        background: rgba(124, 140, 255, 0.2);
+      }
+
+      .dialog-button.danger {
+        color: var(--danger);
+        border-color: rgba(255, 125, 139, 0.4);
+        background: rgba(255, 125, 139, 0.12);
+      }
+
+      .dialog-button.danger:hover:not(:disabled) {
+        border-color: rgba(255, 125, 139, 0.62);
+        background: rgba(255, 125, 139, 0.2);
+      }
+
+      .dialog-button.copied {
+        color: var(--success);
+        border-color: rgba(99, 214, 160, 0.35);
+        background: rgba(99, 214, 160, 0.1);
+      }
+
+      .dialog-button svg {
+        width: 15px;
+        height: 15px;
+      }
+
+      .dialog-status {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 780px) {
+        .page {
+          width: min(100% - 20px, 1120px);
+          padding-top: 42px;
+        }
+
+        .toolbar {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .sort-control {
+          width: 100%;
+        }
+
+        .sort-select {
+          width: 100%;
+        }
+
+        .refresh-button {
+          width: 100%;
+        }
+
+        .file-row {
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 10px 14px;
+          padding: 14px;
+        }
+
+        .file-size,
+        .file-date {
+          display: none;
+        }
+
+        .copy-button,
+        .delete-button {
+          width: 42px;
+          padding: 0;
+        }
+
+        .copy-button span,
+        .delete-button span {
+          display: none;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .search-controls {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .search-mode {
+          width: 100%;
+        }
+
+        .pagination {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .pagination-controls {
+          justify-content: space-between;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="page">
+      <header class="header">
+        <div class="eyebrow">
+          <span class="eyebrow-dot"></span>
+          R2 File Browser
+        </div>
+
+        <h1>Urovo Tools Download</h1>
+
+        <p class="subtitle">
+          Browse, search and copy direct download links for available tools.
+        </p>
+      </header>
+
+      <section class="browser">
+        <div class="toolbar">
+          <div class="search-controls">
+            <div class="search-wrapper">
+              <svg
+                class="search-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="m20 20-3.4-3.4"></path>
+              </svg>
+
+              <input
+                id="searchInput"
+                class="search-input"
+                type="search"
+                placeholder='Search terms, e.g. sdk "release build"'
+                autocomplete="off"
+                spellcheck="false"
+                aria-label="Search files by one or more terms"
+              />
+
+              <button
+                id="clearButton"
+                class="clear-button"
+                type="button"
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            </div>
+
+            <div class="search-mode" role="group" aria-label="Search operator">
+              <button
+                class="search-mode-button active"
+                type="button"
+                data-search-mode="and"
+                aria-pressed="true"
+                title="Match every search term"
+              >
+                AND
+              </button>
+              <button
+                class="search-mode-button"
+                type="button"
+                data-search-mode="or"
+                aria-pressed="false"
+                title="Match any search term"
+              >
+                OR
+              </button>
+            </div>
+          </div>
+
+          <div class="sort-control">
+            <svg
+              class="sort-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M7 4v16"></path>
+              <path d="m11 8 4-4 4 4"></path>
+              <path d="m11 16 4 4 4-4"></path>
+            </svg>
+
+            <select id="sortSelect" class="sort-select" aria-label="Sort files">
+              <option value="time-desc">Newest first</option>
+              <option value="time-asc">Oldest first</option>
+              <option value="name-asc">Name A → Z</option>
+              <option value="name-desc">Name Z → A</option>
+            </select>
+          </div>
+
+          <button id="refreshButton" class="refresh-button" type="button">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M20 12a8 8 0 1 1-2.34-5.66"></path>
+              <path d="M20 4v6h-6"></path>
+            </svg>
+
+            <span>Refresh</span>
+          </button>
+        </div>
+
+        <div class="summary">
+          <span id="summaryPath" class="summary-path">Loading R2 files…</span>
+          <span id="summaryCount" class="summary-count"></span>
+        </div>
+
+        <div id="fileList" class="file-list"></div>
+
+        <div id="pagination" class="pagination hidden">
+          <span id="paginationInfo" class="pagination-info"></span>
+          <div class="pagination-controls">
+            <button
+              id="prevPageButton"
+              class="pagination-button"
+              type="button"
+              aria-label="Previous page"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="m15 18-6-6 6-6"></path>
+              </svg>
+              <span>Prev</span>
+            </button>
+            <button
+              id="nextPageButton"
+              class="pagination-button"
+              type="button"
+              aria-label="Next page"
+            >
+              <span>Next</span>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="m9 18 6-6-6-6"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        Files are served securely through Cloudflare Pages and R2.
+      </footer>
+    </main>
+
+    <div id="toast" class="toast">
+      <span class="toast-dot"></span>
+      <span id="toastMessage">Link copied</span>
+    </div>
+
+    <div
+      id="descriptionDialog"
+      class="dialog-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dialogTitle"
+    >
+      <div class="dialog">
+        <div class="dialog-header">
+          <h2 id="dialogTitle" class="dialog-title">Description</h2>
+          <button
+            id="dialogCloseButton"
+            class="dialog-close"
+            type="button"
+            aria-label="Close description dialog"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="dialog-body">
+          <p id="dialogFileName" class="dialog-file-name"></p>
+          <textarea
+            id="dialogTextarea"
+            class="dialog-textarea"
+            placeholder="No description yet. Add notes about this file…"
+            maxlength="1500"
+          ></textarea>
+
+          <div class="dialog-footer">
+            <span id="dialogStatus" class="dialog-status"></span>
+            <div class="dialog-actions">
+              <button
+                id="dialogCopyButton"
+                class="dialog-button"
+                type="button"
+              >
+                Copy
+              </button>
+              <button
+                id="dialogSaveButton"
+                class="dialog-button primary"
+                type="button"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="deleteDialog"
+      class="dialog-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="deleteDialogTitle"
+    >
+      <div class="dialog">
+        <div class="dialog-header">
+          <h2 id="deleteDialogTitle" class="dialog-title">Delete file</h2>
+          <button
+            id="deleteDialogCloseButton"
+            class="dialog-close"
+            type="button"
+            aria-label="Close delete dialog"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="dialog-body">
+          <p id="deleteDialogFileName" class="dialog-file-name"></p>
+          <input
+            id="deletePasswordInput"
+            class="dialog-input"
+            type="password"
+            autocomplete="off"
+            placeholder="Enter password to delete"
+          />
+
+          <div class="dialog-footer">
+            <span id="deleteDialogStatus" class="dialog-status"></span>
+            <div class="dialog-actions">
+              <button
+                id="deleteDialogCancelButton"
+                class="dialog-button"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                id="deleteDialogConfirmButton"
+                class="dialog-button danger"
+                type="button"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const PAGE_SIZE = 50;
+
+      const state = {
+        files: [],
+        filteredFiles: [],
+        displayedFiles: [],
+        loading: false,
+        searchMode: "and",
+        sortBy: "time-desc",
+        currentPage: 1,
+        descriptionCache: {},
+        activeDescriptionFile: null,
+        descriptionLoading: false,
+        descriptionSaving: false,
+        activeDeleteFile: null,
+        deleteSubmitting: false,
+      };
+
+      const elements = {
+        searchInput: document.getElementById("searchInput"),
+        clearButton: document.getElementById("clearButton"),
+        searchModeButtons: document.querySelectorAll("[data-search-mode]"),
+        sortSelect: document.getElementById("sortSelect"),
+        refreshButton: document.getElementById("refreshButton"),
+        summaryPath: document.getElementById("summaryPath"),
+        summaryCount: document.getElementById("summaryCount"),
+        fileList: document.getElementById("fileList"),
+        pagination: document.getElementById("pagination"),
+        paginationInfo: document.getElementById("paginationInfo"),
+        prevPageButton: document.getElementById("prevPageButton"),
+        nextPageButton: document.getElementById("nextPageButton"),
+        toast: document.getElementById("toast"),
+        toastMessage: document.getElementById("toastMessage"),
+        descriptionDialog: document.getElementById("descriptionDialog"),
+        dialogCloseButton: document.getElementById("dialogCloseButton"),
+        dialogFileName: document.getElementById("dialogFileName"),
+        dialogTextarea: document.getElementById("dialogTextarea"),
+        dialogStatus: document.getElementById("dialogStatus"),
+        dialogCopyButton: document.getElementById("dialogCopyButton"),
+        dialogSaveButton: document.getElementById("dialogSaveButton"),
+        deleteDialog: document.getElementById("deleteDialog"),
+        deleteDialogCloseButton: document.getElementById(
+          "deleteDialogCloseButton",
+        ),
+        deleteDialogFileName: document.getElementById("deleteDialogFileName"),
+        deletePasswordInput: document.getElementById("deletePasswordInput"),
+        deleteDialogStatus: document.getElementById("deleteDialogStatus"),
+        deleteDialogCancelButton: document.getElementById(
+          "deleteDialogCancelButton",
+        ),
+        deleteDialogConfirmButton: document.getElementById(
+          "deleteDialogConfirmButton",
+        ),
+      };
+
+      const icons = {
+        file: `
+        <svg viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.8">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12
+                   a2 2 0 0 0 2-2V8z"></path>
+          <path d="M14 2v6h6"></path>
+        </svg>
+      `,
+
+        copy: `
+        <svg viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9
+                   a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      `,
+
+        check: `
+        <svg viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.2">
+          <path d="m5 12 4 4L19 6"></path>
+        </svg>
+      `,
+
+        empty: `
+        <svg viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.8">
+          <path d="M3 6h18"></path>
+          <path d="M8 6V4h8v2"></path>
+          <path d="M19 6l-1 14H6L5 6"></path>
+          <path d="M10 11v5M14 11v5"></path>
+        </svg>
+      `,
+
+        error: `
+        <svg viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 7v6"></path>
+          <path d="M12 17h.01"></path>
+        </svg>
+      `,
+
+        info: `
+        <svg viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 10v6"></path>
+          <path d="M12 7h.01"></path>
+        </svg>
+      `,
+
+        trash: `
+        <svg viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18"></path>
+          <path d="M8 6V4h8v2"></path>
+          <path d="M19 6l-1 14H6L5 6"></path>
+          <path d="M10 11v5M14 11v5"></path>
+        </svg>
+      `,
+      };
+
+      function matchesQuery(text, query) {
+        let qi = 0;
+
+        for (let ti = 0; ti < text.length && qi < query.length; ti++) {
+          if (text[ti] === query[qi]) {
+            qi++;
+          }
+        }
+
+        return qi === query.length;
+      }
+
+      function parseSearchTerms(query) {
+        const terms = [];
+        const matcher = /"([^"]+)"|'([^']+)'|“([^”]+)”|‘([^’]+)’|(\S+)/g;
+        let match;
+
+        while ((match = matcher.exec(query)) !== null) {
+          const term = (match[1] || match[2] || match[3] || match[4] || match[5])
+            .trim()
+            .toLowerCase();
+
+          if (term && !terms.includes(term)) {
+            terms.push(term);
+          }
+        }
+
+        return terms;
+      }
+
+      function formatBytes(bytes) {
+        if (!Number.isFinite(bytes) || bytes < 0) {
+          return "—";
+        }
+
+        if (bytes === 0) {
+          return "0 B";
+        }
+
+        const units = ["B", "KB", "MB", "GB", "TB"];
+        const index = Math.min(
+          Math.floor(Math.log(bytes) / Math.log(1024)),
+          units.length - 1,
+        );
+
+        const value = bytes / Math.pow(1024, index);
+        const digits = value >= 100 || index === 0 ? 0 : value >= 10 ? 1 : 2;
+
+        return `${value.toFixed(digits)} ${units[index]}`;
+      }
+
+      function formatDate(value) {
+        if (!value) {
+          return "—";
+        }
+
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+          return "—";
+        }
+
+        return new Intl.DateTimeFormat(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(date);
+      }
+
+      function showToast(message) {
+        elements.toastMessage.textContent = message;
+        elements.toast.classList.add("visible");
+
+        window.clearTimeout(showToast.timeout);
+
+        showToast.timeout = window.setTimeout(() => {
+          elements.toast.classList.remove("visible");
+        }, 2200);
+      }
+
+      async function copyText(text, successMessage) {
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast(successMessage);
+          return true;
+        } catch {
+          const textArea = document.createElement("textarea");
+
+          textArea.value = text;
+          textArea.style.position = "fixed";
+          textArea.style.opacity = "0";
+
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand("copy");
+          textArea.remove();
+
+          showToast(successMessage);
+          return true;
+        }
+      }
+
+      function getUploadedTime(file) {
+        if (!file.uploaded) {
+          return 0;
+        }
+
+        const time = new Date(file.uploaded).getTime();
+        return Number.isNaN(time) ? 0 : time;
+      }
+
+      function sortFiles(files) {
+        const sorted = [...files];
+
+        sorted.sort((a, b) => {
+          switch (state.sortBy) {
+            case "time-asc": {
+              const diff = getUploadedTime(a) - getUploadedTime(b);
+              return diff !== 0 ? diff : a.name.localeCompare(b.name);
+            }
+            case "name-asc":
+              return a.name.localeCompare(b.name, undefined, {
+                sensitivity: "base",
+              });
+            case "name-desc":
+              return b.name.localeCompare(a.name, undefined, {
+                sensitivity: "base",
+              });
+            case "time-desc":
+            default: {
+              const diff = getUploadedTime(b) - getUploadedTime(a);
+              return diff !== 0 ? diff : a.name.localeCompare(b.name);
+            }
+          }
+        });
+
+        return sorted;
+      }
+
+      function getTotalPages(count) {
+        return Math.max(1, Math.ceil(count / PAGE_SIZE));
+      }
+
+      function resetToFirstPage() {
+        state.currentPage = 1;
+      }
+
+      function clampCurrentPage(totalPages) {
+        state.currentPage = Math.min(
+          Math.max(state.currentPage, 1),
+          totalPages,
+        );
+      }
+
+      function renderLoading() {
+        elements.fileList.innerHTML = `
+        <div class="state">
+          <div class="state-content">
+            <div class="loading-ring"></div>
+            <h2 class="state-title">Loading files</h2>
+            <p class="state-message">
+              Reading the latest file list from Cloudflare R2.
+            </p>
+          </div>
+        </div>
+      `;
+      }
+
+      function renderState(icon, title, message) {
+        elements.fileList.innerHTML = `
+        <div class="state">
+          <div class="state-content">
+            <div class="state-icon">${icon}</div>
+            <h2 class="state-title">${title}</h2>
+            <p class="state-message">${message}</p>
+          </div>
+        </div>
+      `;
+      }
+
+      function fileHasDescription(file) {
+        if (Object.hasOwn(state.descriptionCache, file.key)) {
+          return state.descriptionCache[file.key].length > 0;
+        }
+
+        return Boolean(file.hasDescription);
+      }
+
+      function createFileRow(file) {
+        const row = document.createElement("div");
+        row.className = "file-row";
+
+        const main = document.createElement("div");
+        main.className = "file-main";
+
+        const iconButton = document.createElement("button");
+        iconButton.className = "file-icon-button";
+        iconButton.type = "button";
+        iconButton.title = "View description";
+        iconButton.setAttribute(
+          "aria-label",
+          `View description for ${file.name}`,
+        );
+        iconButton.innerHTML = icons.info;
+
+        if (fileHasDescription(file)) {
+          iconButton.classList.add("has-description");
+        }
+
+        iconButton.addEventListener("click", () => {
+          openDescriptionDialog(file);
+        });
+
+        const details = document.createElement("div");
+        details.className = "file-details";
+
+        const link = document.createElement("a");
+        link.className = "file-link";
+        link.href = file.url;
+        link.textContent = file.name;
+        link.title = file.name;
+
+        const key = document.createElement("div");
+        key.className = "file-key";
+        key.textContent = file.key;
+        key.title = file.key;
+
+        details.append(link, key);
+        main.append(iconButton, details);
+
+        const size = document.createElement("div");
+        size.className = "file-size";
+        size.textContent = formatBytes(file.size);
+
+        const date = document.createElement("div");
+        date.className = "file-date";
+        date.textContent = formatDate(file.uploaded);
+
+        const actions = document.createElement("div");
+        actions.className = "file-actions";
+
+        const copyButton = document.createElement("button");
+        copyButton.className = "copy-button";
+        copyButton.type = "button";
+        copyButton.innerHTML = `${icons.copy}<span>Copy</span>`;
+
+        copyButton.addEventListener("click", async () => {
+          await copyText(file.url, "Download link copied");
+
+          copyButton.classList.add("copied");
+          copyButton.innerHTML = `${icons.check}<span>Copied</span>`;
+
+          window.setTimeout(() => {
+            copyButton.classList.remove("copied");
+            copyButton.innerHTML = `${icons.copy}<span>Copy</span>`;
+          }, 1600);
+        });
+
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "delete-button";
+        deleteButton.type = "button";
+        deleteButton.title = "Delete file";
+        deleteButton.setAttribute("aria-label", `Delete ${file.name}`);
+        deleteButton.innerHTML = `${icons.trash}<span>Delete</span>`;
+        deleteButton.addEventListener("click", () => {
+          openDeleteDialog(file);
+        });
+
+        actions.append(copyButton, deleteButton);
+        row.append(main, size, date, actions);
+
+        return row;
+      }
+
+      function renderPagination(totalCount) {
+        const totalPages = getTotalPages(totalCount);
+
+        if (totalCount <= PAGE_SIZE) {
+          elements.pagination.classList.add("hidden");
+          return;
+        }
+
+        const start = (state.currentPage - 1) * PAGE_SIZE + 1;
+        const end = Math.min(state.currentPage * PAGE_SIZE, totalCount);
+
+        elements.pagination.classList.remove("hidden");
+        elements.paginationInfo.textContent =
+          `Showing ${start}–${end} of ${totalCount} · Page ${state.currentPage} of ${totalPages}`;
+        elements.prevPageButton.disabled = state.currentPage <= 1;
+        elements.nextPageButton.disabled = state.currentPage >= totalPages;
+      }
+
+      function renderFiles() {
+        const terms = parseSearchTerms(elements.searchInput.value.trim());
+
+        const filtered = state.files.filter((file) => {
+          if (terms.length === 0) {
+            return true;
+          }
+
+          const fields = [file.name, file.key].map((value) =>
+            String(value || "").toLowerCase(),
+          );
+          const matchesTerm = (term) =>
+            fields.some((field) => matchesQuery(field, term));
+
+          return state.searchMode === "and"
+            ? terms.every(matchesTerm)
+            : terms.some(matchesTerm);
+        });
+
+        state.filteredFiles = sortFiles(filtered);
+
+        const totalPages = getTotalPages(state.filteredFiles.length);
+        clampCurrentPage(totalPages);
+
+        const pageStart = (state.currentPage - 1) * PAGE_SIZE;
+        state.displayedFiles = state.filteredFiles.slice(
+          pageStart,
+          pageStart + PAGE_SIZE,
+        );
+
+        elements.summaryCount.textContent =
+          `${state.filteredFiles.length} file` +
+          (state.filteredFiles.length === 1 ? "" : "s");
+
+        if (state.files.length === 0) {
+          elements.pagination.classList.add("hidden");
+          renderState(
+            icons.empty,
+            "No files found",
+            "There are currently no files under the configured R2 prefix.",
+          );
+          return;
+        }
+
+        if (state.filteredFiles.length === 0) {
+          elements.pagination.classList.add("hidden");
+          renderState(
+            icons.empty,
+            "No matching files",
+            "Try another filename or clear the search.",
+          );
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        for (const file of state.displayedFiles) {
+          fragment.appendChild(createFileRow(file));
+        }
+
+        elements.fileList.replaceChildren(fragment);
+        renderPagination(state.filteredFiles.length);
+      }
+
+      function updateDescriptionDialogUi() {
+        const isBusy =
+          state.descriptionLoading || state.descriptionSaving;
+
+        elements.dialogTextarea.disabled = isBusy;
+        elements.dialogCopyButton.disabled =
+          isBusy || elements.dialogTextarea.value.length === 0;
+        elements.dialogSaveButton.disabled = isBusy;
+        elements.dialogSaveButton.textContent = state.descriptionSaving
+          ? "Saving…"
+          : "Save";
+
+        if (state.descriptionLoading) {
+          elements.dialogStatus.textContent = "Loading description…";
+        } else if (state.descriptionSaving) {
+          elements.dialogStatus.textContent = "Saving description…";
+        } else {
+          elements.dialogStatus.textContent = `${elements.dialogTextarea.value.length} / 1500`;
+        }
+      }
+
+      function closeDescriptionDialog() {
+        state.activeDescriptionFile = null;
+        state.descriptionLoading = false;
+        state.descriptionSaving = false;
+        elements.descriptionDialog.classList.remove("visible");
+        elements.dialogTextarea.value = "";
+        elements.dialogFileName.textContent = "";
+        elements.dialogCopyButton.classList.remove("copied");
+        elements.dialogCopyButton.innerHTML = "Copy";
+        updateDescriptionDialogUi();
+      }
+
+      async function openDescriptionDialog(file) {
+        state.activeDescriptionFile = file;
+        elements.dialogFileName.textContent = file.name;
+        elements.dialogTextarea.value = "";
+        elements.descriptionDialog.classList.add("visible");
+        updateDescriptionDialogUi();
+
+        if (Object.hasOwn(state.descriptionCache, file.key)) {
+          elements.dialogTextarea.value = state.descriptionCache[file.key];
+          updateDescriptionDialogUi();
+          elements.dialogTextarea.focus();
+          return;
+        }
+
+        state.descriptionLoading = true;
+        updateDescriptionDialogUi();
+
+        try {
+          const response = await fetch(
+            `/api/description?key=${encodeURIComponent(file.key)}`,
+            {
+              headers: {
+                Accept: "application/json",
+              },
+              cache: "no-store",
+            },
+          );
+
+          const payload = await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              payload.detail || payload.error || "Request failed",
+            );
+          }
+
+          const description =
+            typeof payload.description === "string" ? payload.description : "";
+
+          state.descriptionCache[file.key] = description;
+
+          if (state.activeDescriptionFile?.key === file.key) {
+            elements.dialogTextarea.value = description;
+            updateDescriptionDialogUi();
+            elements.dialogTextarea.focus();
+          }
+        } catch (error) {
+          console.error(error);
+
+          if (state.activeDescriptionFile?.key === file.key) {
+            elements.dialogStatus.textContent =
+              error instanceof Error
+                ? error.message
+                : "Failed to load description.";
+          }
+        } finally {
+          state.descriptionLoading = false;
+
+          if (state.activeDescriptionFile?.key === file.key) {
+            updateDescriptionDialogUi();
+          }
+        }
+      }
+
+      async function saveDescription() {
+        const file = state.activeDescriptionFile;
+
+        if (!file || state.descriptionSaving) {
+          return;
+        }
+
+        const description = elements.dialogTextarea.value.trim();
+        state.descriptionSaving = true;
+        updateDescriptionDialogUi();
+
+        try {
+          const response = await fetch(
+            `/api/description?key=${encodeURIComponent(file.key)}`,
+            {
+              method: "PUT",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ description }),
+            },
+          );
+
+          const payload = await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              payload.detail || payload.error || "Request failed",
+            );
+          }
+
+          const savedDescription =
+            typeof payload.description === "string" ? payload.description : "";
+
+          state.descriptionCache[file.key] = savedDescription;
+          file.hasDescription = savedDescription.length > 0;
+          elements.dialogTextarea.value = savedDescription;
+          showToast("Description saved");
+          renderFiles();
+        } catch (error) {
+          console.error(error);
+          showToast(
+            error instanceof Error
+              ? error.message
+              : "Failed to save description.",
+          );
+        } finally {
+          state.descriptionSaving = false;
+          updateDescriptionDialogUi();
+        }
+      }
+
+      async function loadFiles() {
+        if (state.loading) {
+          return;
+        }
+
+        state.loading = true;
+        elements.refreshButton.classList.add("loading");
+        elements.refreshButton.disabled = true;
+        elements.summaryPath.textContent = "Loading R2 files…";
+        elements.summaryCount.textContent = "";
+
+        renderLoading();
+
+        try {
+          const response = await fetch("/api/files", {
+            headers: {
+              Accept: "application/json",
+            },
+            cache: "no-store",
+          });
+
+          const payload = await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              payload.detail || payload.error || "Request failed",
+            );
+          }
+
+          state.files = Array.isArray(payload.files) ? payload.files : [];
+          state.descriptionCache = {};
+
+          elements.summaryPath.textContent = `R2 / ${payload.prefix || "tools/"}`;
+
+          renderFiles();
+        } catch (error) {
+          console.error(error);
+
+          elements.summaryPath.textContent = "Unable to load R2 files";
+          elements.summaryCount.textContent = "";
+
+          renderState(
+            icons.error,
+            "Could not load files",
+            error instanceof Error
+              ? error.message
+              : "An unexpected error occurred.",
+          );
+        } finally {
+          state.loading = false;
+          elements.refreshButton.classList.remove("loading");
+          elements.refreshButton.disabled = false;
+        }
+      }
+
+      function closeDeleteDialog() {
+        state.activeDeleteFile = null;
+        state.deleteSubmitting = false;
+        elements.deleteDialog.classList.remove("visible");
+        elements.deletePasswordInput.value = "";
+        elements.deleteDialogFileName.textContent = "";
+        elements.deleteDialogStatus.textContent = "";
+        elements.deletePasswordInput.disabled = false;
+        elements.deleteDialogConfirmButton.disabled = false;
+        elements.deleteDialogConfirmButton.textContent = "Delete";
+      }
+
+      function openDeleteDialog(file) {
+        state.activeDeleteFile = file;
+        state.deleteSubmitting = false;
+        elements.deleteDialogFileName.textContent = file.name;
+        elements.deletePasswordInput.value = "";
+        elements.deleteDialogStatus.textContent = "";
+        elements.deletePasswordInput.disabled = false;
+        elements.deleteDialogConfirmButton.disabled = false;
+        elements.deleteDialogConfirmButton.textContent = "Delete";
+        elements.deleteDialog.classList.add("visible");
+        elements.deletePasswordInput.focus();
+      }
+
+      async function confirmDelete() {
+        const file = state.activeDeleteFile;
+
+        if (!file || state.deleteSubmitting) {
+          return;
+        }
+
+        const password = elements.deletePasswordInput.value;
+
+        if (!password) {
+          elements.deleteDialogStatus.textContent = "Password required.";
+          elements.deletePasswordInput.focus();
+          return;
+        }
+
+        state.deleteSubmitting = true;
+        elements.deletePasswordInput.disabled = true;
+        elements.deleteDialogConfirmButton.disabled = true;
+        elements.deleteDialogConfirmButton.textContent = "Deleting…";
+        elements.deleteDialogStatus.textContent = "";
+
+        try {
+          const response = await fetch(
+            `/api/delete?key=${encodeURIComponent(file.key)}`,
+            {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ password }),
+            },
+          );
+
+          const payload = await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              payload.detail || payload.error || "Request failed",
+            );
+          }
+
+          state.files = state.files.filter((item) => item.key !== file.key);
+          delete state.descriptionCache[file.key];
+
+          if (state.activeDescriptionFile?.key === file.key) {
+            closeDescriptionDialog();
+          }
+
+          closeDeleteDialog();
+          showToast("File deleted");
+          renderFiles();
+        } catch (error) {
+          console.error(error);
+
+          const message =
+            error instanceof Error ? error.message : "Failed to delete file.";
+
+          elements.deleteDialogStatus.textContent =
+            message === "Unauthorized." ? "Wrong password." : message;
+          elements.deletePasswordInput.disabled = false;
+          elements.deleteDialogConfirmButton.disabled = false;
+          elements.deleteDialogConfirmButton.textContent = "Delete";
+          elements.deletePasswordInput.focus();
+          elements.deletePasswordInput.select();
+        } finally {
+          state.deleteSubmitting = false;
+        }
+      }
+
+      elements.searchInput.addEventListener("input", () => {
+        elements.clearButton.classList.toggle(
+          "visible",
+          elements.searchInput.value.length > 0,
+        );
+
+        resetToFirstPage();
+        renderFiles();
+      });
+
+      elements.clearButton.addEventListener("click", () => {
+        elements.searchInput.value = "";
+        elements.clearButton.classList.remove("visible");
+        elements.searchInput.focus();
+        resetToFirstPage();
+        renderFiles();
+      });
+
+      for (const button of elements.searchModeButtons) {
+        button.addEventListener("click", () => {
+          state.searchMode = button.dataset.searchMode;
+
+          for (const modeButton of elements.searchModeButtons) {
+            const isActive = modeButton === button;
+            modeButton.classList.toggle("active", isActive);
+            modeButton.setAttribute("aria-pressed", String(isActive));
+          }
+
+          resetToFirstPage();
+          renderFiles();
+        });
+      }
+
+      elements.sortSelect.addEventListener("change", () => {
+        state.sortBy = elements.sortSelect.value;
+        resetToFirstPage();
+        renderFiles();
+      });
+
+      elements.prevPageButton.addEventListener("click", () => {
+        if (state.currentPage > 1) {
+          state.currentPage -= 1;
+          renderFiles();
+          elements.fileList.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+
+      elements.nextPageButton.addEventListener("click", () => {
+        const totalPages = getTotalPages(state.filteredFiles.length);
+
+        if (state.currentPage < totalPages) {
+          state.currentPage += 1;
+          renderFiles();
+          elements.fileList.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+
+      elements.dialogCloseButton.addEventListener("click", closeDescriptionDialog);
+
+      elements.descriptionDialog.addEventListener("click", (event) => {
+        if (event.target === elements.descriptionDialog) {
+          closeDescriptionDialog();
+        }
+      });
+
+      elements.dialogTextarea.addEventListener("input", updateDescriptionDialogUi);
+
+      elements.dialogCopyButton.addEventListener("click", async () => {
+        const description = elements.dialogTextarea.value;
+
+        if (!description) {
+          return;
+        }
+
+        await copyText(description, "Description copied");
+
+        elements.dialogCopyButton.classList.add("copied");
+        elements.dialogCopyButton.innerHTML = `${icons.check} Copied`;
+
+        window.setTimeout(() => {
+          elements.dialogCopyButton.classList.remove("copied");
+          elements.dialogCopyButton.innerHTML = "Copy";
+        }, 1600);
+      });
+
+      elements.dialogSaveButton.addEventListener("click", saveDescription);
+
+      elements.deleteDialogCloseButton.addEventListener("click", () => {
+        if (!state.deleteSubmitting) {
+          closeDeleteDialog();
+        }
+      });
+
+      elements.deleteDialogCancelButton.addEventListener("click", () => {
+        if (!state.deleteSubmitting) {
+          closeDeleteDialog();
+        }
+      });
+
+      elements.deleteDialog.addEventListener("click", (event) => {
+        if (event.target === elements.deleteDialog && !state.deleteSubmitting) {
+          closeDeleteDialog();
+        }
+      });
+
+      elements.deleteDialogConfirmButton.addEventListener("click", confirmDelete);
+
+      elements.deletePasswordInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          confirmDelete();
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") {
+          return;
+        }
+
+        if (elements.deleteDialog.classList.contains("visible")) {
+          if (!state.deleteSubmitting) {
+            closeDeleteDialog();
+          }
+          return;
+        }
+
+        if (elements.descriptionDialog.classList.contains("visible")) {
+          closeDescriptionDialog();
+        }
+      });
+
+      elements.refreshButton.addEventListener("click", loadFiles);
+
+      loadFiles();
+    </script>
+  </body>
+</html>
