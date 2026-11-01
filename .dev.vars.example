@@ -1,0 +1,13 @@
+# Local development only. Copy to .dev.vars and replace these dummy values.
+# Never commit .dev.vars or production credentials.
+ADMIN_PASSWORD=local-admin-change-me
+UPLOADER_PASSWORD=local-uploader-change-me
+AI_SESSION_SECRET=local-development-only-replace-with-a-random-secret
+# AI_API_KEY=
+# TURNSTILE_SITE_KEY=
+# TURNSTILE_SECRET_KEY=
+# SYNC_TOKEN=
+# SYNC_WORKER_URL=
+# UPLOAD_TOKEN=
+# FIRMWARE_API_BASE_URL=
+# FIRMWARE_API_TOKEN=

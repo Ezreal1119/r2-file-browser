@@ -1,0 +1,6 @@
+# Optional: local SDK discovery needs no GitHub token for this public repository.
+# Do not use production credentials unless intentionally testing live upstreams.
+UROVO_MEMBER=
+UROVO_PASSWORD=
+SYNC_TOKEN=
+# GITHUB_TOKEN=

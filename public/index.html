@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Urovo Tools Download</title>
+    <link rel="icon" type="image/png" href="/patrick-logo.png" />
+
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 
     <style>
       :root {
@@ -37,6 +40,8 @@
         min-height: 100vh;
         margin: 0;
         overflow-x: hidden;
+        -webkit-user-select: none;
+        user-select: none;
         font-family:
           Inter,
           ui-sans-serif,
@@ -64,6 +69,17 @@
           var(--background);
       }
 
+      input,
+      textarea,
+      [contenteditable="true"],
+      .file-link,
+      .file-key,
+      .ai-match-reason,
+      .dialog-file-name {
+        -webkit-user-select: text;
+        user-select: text;
+      }
+
       body::before {
         content: "";
         position: fixed;
@@ -88,6 +104,10 @@
 
       button {
         cursor: pointer;
+      }
+
+      .is-hidden {
+        display: none !important;
       }
 
       .page {
@@ -288,95 +308,128 @@
         outline-offset: 1px;
       }
 
-      .refresh-button {
+      .admin-button {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
         height: 48px;
         padding: 0 17px;
-        color: var(--text);
+        color: var(--muted);
         white-space: nowrap;
         border: 1px solid var(--border);
         border-radius: 14px;
-        background: rgba(255, 255, 255, 0.045);
+        background: rgba(255, 255, 255, 0.035);
+        transition:
+          color 160ms ease,
+          background 160ms ease,
+          border-color 160ms ease,
+          transform 160ms ease;
+      }
+
+      .admin-button:hover {
+        color: var(--text);
+        border-color: var(--border-strong);
+        background: rgba(255, 255, 255, 0.075);
+      }
+
+      .admin-button:active {
+        transform: scale(0.98);
+      }
+
+      .admin-button.active {
+        color: var(--success);
+        border-color: rgba(99, 214, 160, 0.34);
+        background: rgba(99, 214, 160, 0.1);
+      }
+
+      .admin-button svg {
+        width: 17px;
+        height: 17px;
+      }
+
+      .label-filter-button,
+      .source-filter-button,
+      .logs-button,
+      .label-list-button {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        height: 48px;
+        padding: 0 14px;
+        color: var(--muted);
+        white-space: nowrap;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .label-filter-button:hover,
+      .source-filter-button:hover,
+      .logs-button:hover:not(:disabled),
+      .label-list-button:hover {
+        color: var(--text);
+        border-color: var(--border-strong);
+        background: rgba(255, 255, 255, 0.075);
+      }
+
+      .label-filter-button.active,
+      .source-filter-button.active {
+        color: var(--accent-light);
+        border-color: rgba(124, 140, 255, 0.42);
+        background: rgba(124, 140, 255, 0.14);
+      }
+
+      .label-filter-button svg,
+      .source-filter-button svg,
+      .logs-button svg,
+      .label-list-button svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .logs-button:disabled {
+        cursor: wait;
+        opacity: 0.65;
+      }
+
+      .sync-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 48px;
+        padding: 0 17px;
+        color: var(--accent-light);
+        white-space: nowrap;
+        border: 1px solid rgba(124, 140, 255, 0.25);
+        border-radius: 14px;
+        background: rgba(124, 140, 255, 0.08);
         transition:
           background 160ms ease,
           border-color 160ms ease,
           transform 160ms ease;
       }
 
-      .refresh-button:hover {
-        border-color: var(--border-strong);
-        background: rgba(255, 255, 255, 0.08);
+      .sync-button:hover:not(:disabled) {
+        border-color: rgba(124, 140, 255, 0.5);
+        background: rgba(124, 140, 255, 0.16);
       }
 
-      .refresh-button:active {
-        transform: scale(0.98);
+      .sync-button:disabled {
+        cursor: wait;
+        opacity: 0.72;
       }
 
-      .refresh-button svg {
+      .sync-button svg {
         width: 17px;
         height: 17px;
       }
 
-      .refresh-button.loading svg {
+      .sync-button.loading svg {
         animation: spin 900ms linear infinite;
-      }
-
-      .sort-control {
-        position: relative;
-        flex: 0 0 auto;
-      }
-
-      .sort-icon {
-        position: absolute;
-        top: 50%;
-        left: 14px;
-        width: 17px;
-        height: 17px;
-        color: var(--muted);
-        transform: translateY(-50%);
-        pointer-events: none;
-      }
-
-      .sort-select {
-        height: 48px;
-        padding: 0 36px 0 40px;
-        color: var(--text);
-        font-size: 13px;
-        font-weight: 600;
-        appearance: none;
-        cursor: pointer;
-        outline: none;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        background:
-          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23949caf' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
-            no-repeat right 12px center,
-          rgba(0, 0, 0, 0.18);
-        transition:
-          border-color 160ms ease,
-          box-shadow 160ms ease,
-          background 160ms ease;
-      }
-
-      .sort-select:hover {
-        border-color: var(--border-strong);
-        background:
-          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a8b2ff' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
-            no-repeat right 12px center,
-          rgba(0, 0, 0, 0.24);
-      }
-
-      .sort-select:focus {
-        border-color: rgba(124, 140, 255, 0.68);
-        box-shadow: 0 0 0 4px rgba(124, 140, 255, 0.12);
-      }
-
-      .sort-select option {
-        color: #111;
-        background: #fff;
       }
 
       .summary {
@@ -477,8 +530,16 @@
         min-width: 0;
       }
 
+      .file-title-line {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        gap: 8px;
+      }
+
       .file-link {
         display: block;
+        min-width: 0;
         overflow: hidden;
         color: var(--text);
         font-size: 14px;
@@ -487,6 +548,32 @@
         text-decoration: none;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+
+      .source-badge {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        min-height: 19px;
+        padding: 2px 7px;
+        font-size: 8px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: 0.065em;
+        white-space: nowrap;
+        border: 1px solid rgba(124, 140, 255, 0.28);
+        border-radius: 999px;
+      }
+
+      .source-badge.uploaded {
+        color: var(--accent-light);
+        background: rgba(124, 140, 255, 0.1);
+      }
+
+      .source-badge.official {
+        color: var(--success);
+        border-color: rgba(99, 214, 160, 0.3);
+        background: rgba(99, 214, 160, 0.1);
       }
 
       .file-link:hover {
@@ -501,6 +588,36 @@
         line-height: 1.35;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+
+      .file-labels {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 7px;
+      }
+
+      .file-label,
+      .label-chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        padding: 2px 8px;
+        color: var(--accent-light);
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.2;
+        border: 1px solid rgba(124, 140, 255, 0.25);
+        border-radius: 999px;
+        background: rgba(124, 140, 255, 0.1);
+      }
+
+      .ai-match-reason {
+        margin-top: 5px;
+        color: var(--accent-light);
+        font-size: 11px;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
       }
 
       .file-size,
@@ -538,9 +655,18 @@
         background: rgba(124, 140, 255, 0.08);
       }
 
-      .copy-button:hover {
+      .copy-button:hover:not(:disabled) {
         border-color: rgba(124, 140, 255, 0.5);
         background: rgba(124, 140, 255, 0.16);
+      }
+
+      .copy-button:disabled {
+        color: var(--muted);
+        border-color: rgba(255, 255, 255, 0.09);
+        background: rgba(255, 255, 255, 0.035);
+        opacity: 0.48;
+        cursor: not-allowed;
+        pointer-events: none;
       }
 
       .copy-button.copied {
@@ -617,11 +743,203 @@
         animation: spin 850ms linear infinite;
       }
 
+      .ai-panel {
+        min-height: 0;
+        padding: 34px 34px 18px;
+        background:
+          radial-gradient(circle at 82% 18%, rgba(99, 214, 160, 0.08), transparent 34%),
+          radial-gradient(circle at 16% 88%, rgba(124, 140, 255, 0.11), transparent 38%);
+      }
+
+      .ai-composer-shell {
+        width: 100%;
+        margin: 0;
+      }
+
+      .ai-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--success);
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: 0.075em;
+        text-transform: uppercase;
+      }
+
+      .ai-kicker::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+        box-shadow: 0 0 14px rgba(99, 214, 160, 0.7);
+      }
+
+      .ai-copy {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.65;
+      }
+
+      .ai-composer-intro {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        margin: 10px 0 14px;
+      }
+
+      .ai-composer {
+        padding: 6px;
+        border: 1px solid rgba(124, 140, 255, 0.24);
+        border-radius: 18px;
+        background: rgba(5, 8, 15, 0.62);
+        box-shadow: 0 16px 46px rgba(0, 0, 0, 0.22);
+      }
+
+      .ai-prompt {
+        width: 100%;
+        min-height: 104px;
+        padding: 15px 16px;
+        resize: none;
+        color: var(--text);
+        font: inherit;
+        line-height: 1.55;
+        outline: none;
+        border: 0;
+        background: transparent;
+      }
+
+      .ai-prompt::placeholder {
+        color: #697286;
+      }
+
+      .ai-composer:focus-within {
+        border-color: rgba(124, 140, 255, 0.66);
+        box-shadow: 0 0 0 4px rgba(124, 140, 255, 0.1);
+      }
+
+      .ai-result-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+
+      .ai-submit,
+      .ai-again {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 17px;
+        color: var(--accent-light);
+        font-size: 13px;
+        font-weight: 700;
+        border: 1px solid rgba(124, 140, 255, 0.38);
+        border-radius: 12px;
+        background: rgba(124, 140, 255, 0.14);
+      }
+
+      .ai-submit:hover:not(:disabled),
+      .ai-again:hover {
+        border-color: rgba(124, 140, 255, 0.62);
+        background: rgba(124, 140, 255, 0.22);
+      }
+
+      .ai-submit:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+      }
+
+      .ai-error {
+        min-height: 18px;
+        margin: 10px 2px 0;
+        color: var(--danger);
+        font-size: 12px;
+      }
+
+      .ai-error:empty {
+        min-height: 0;
+        margin-top: 0;
+      }
+
+      .ai-turnstile {
+        min-height: 65px;
+        overflow: hidden;
+      }
+
+      .verification-dialog {
+        width: min(390px, 100%);
+      }
+
+      .verification-copy {
+        margin: 0 0 18px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .verification-dialog .ai-turnstile {
+        display: flex;
+        justify-content: center;
+      }
+
+      .ai-running {
+        display: grid;
+        min-height: 270px;
+        place-items: center;
+        text-align: center;
+      }
+
+      .ai-result-header {
+        padding: 22px 20px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(124, 140, 255, 0.045);
+      }
+
+      .ai-result-heading {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      .ai-result-title {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      .ai-result-message {
+        display: -webkit-box;
+        overflow: hidden;
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+      }
+
+      .ai-again {
+        flex: 0 0 auto;
+        min-width: 154px;
+        white-space: nowrap;
+      }
+
       .footer {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 6px;
         padding: 22px 4px 0;
         color: #666f82;
         font-size: 12px;
         text-align: center;
+      }
+
+      .footer-separator {
+        color: #454d5e;
       }
 
       .toast {
@@ -822,6 +1140,12 @@
         box-shadow: 0 0 0 4px rgba(124, 140, 255, 0.12);
       }
 
+      .dialog-textarea[readonly] {
+        cursor: default;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.025);
+      }
+
       .dialog-textarea:disabled {
         opacity: 0.65;
       }
@@ -848,6 +1172,287 @@
 
       .dialog-input:disabled {
         opacity: 0.65;
+      }
+
+      .password-input-wrap {
+        position: relative;
+      }
+
+      .password-input-wrap .dialog-input {
+        padding-right: 50px;
+      }
+
+      .password-toggle {
+        position: absolute;
+        top: 50%;
+        right: 8px;
+        display: grid;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        place-items: center;
+        color: var(--muted);
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        transform: translateY(-50%);
+      }
+
+      .password-toggle:hover,
+      .password-toggle[aria-pressed="true"] {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.07);
+      }
+
+      .password-toggle svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .settings-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .auto-label-entry {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 13px 14px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(124, 140, 255, 0.045);
+      }
+
+      .auto-label-results {
+        display: grid;
+        gap: 8px;
+        max-height: min(48vh, 420px);
+        overflow-y: auto;
+        margin-top: 14px;
+      }
+
+      .auto-label-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      .auto-label-row input {
+        margin-top: 3px;
+        accent-color: var(--accent);
+      }
+
+      .auto-label-row-content {
+        min-width: 0;
+      }
+
+      .auto-label-row-name {
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 650;
+        overflow-wrap: anywhere;
+      }
+
+      .auto-label-row-meta {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+      }
+
+      .settings-field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .settings-label {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 650;
+        letter-spacing: 0.025em;
+      }
+
+      .settings-hint {
+        margin: 0;
+        color: #737c90;
+        font-size: 11px;
+        line-height: 1.5;
+      }
+
+      .label-picker {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+        max-height: 280px;
+        overflow-y: auto;
+        padding: 2px;
+      }
+
+      .label-option {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+        padding: 10px 12px;
+        color: var(--muted);
+        font-size: 13px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.025);
+        cursor: pointer;
+      }
+
+      .label-option:has(input:checked) {
+        color: var(--text);
+        border-color: rgba(124, 140, 255, 0.45);
+        background: rgba(124, 140, 255, 0.12);
+      }
+
+      .label-option input {
+        flex: 0 0 auto;
+        accent-color: var(--accent);
+      }
+
+      .label-option span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .label-empty {
+        grid-column: 1 / -1;
+        margin: 0;
+        padding: 18px;
+        color: #737c90;
+        font-size: 12px;
+        text-align: center;
+        border: 1px dashed var(--border);
+        border-radius: 12px;
+      }
+
+      .label-add-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .label-add-row .dialog-input {
+        min-width: 0;
+      }
+
+      .label-manager-list {
+        display: grid;
+        gap: 8px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .label-manager-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      .label-manager-delete {
+        flex: 0 0 auto;
+        padding: 5px 9px;
+        color: var(--danger);
+        font-size: 11px;
+        border: 1px solid rgba(255, 125, 139, 0.22);
+        border-radius: 8px;
+        background: rgba(255, 125, 139, 0.07);
+      }
+
+      .dialog-label-section {
+        display: grid;
+        gap: 10px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+      }
+
+      .dialog-label-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .settings-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 13px 14px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      .settings-toggle-copy {
+        display: grid;
+        gap: 4px;
+      }
+
+      .switch {
+        position: relative;
+        flex: 0 0 auto;
+        width: 44px;
+        height: 25px;
+      }
+
+      .switch input {
+        position: absolute;
+        opacity: 0;
+      }
+
+      .switch-track {
+        position: absolute;
+        inset: 0;
+        cursor: pointer;
+        border: 1px solid var(--border-strong);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        transition: 160ms ease;
+      }
+
+      .switch-track::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 17px;
+        height: 17px;
+        border-radius: 50%;
+        background: #a3aabc;
+        transition: 160ms ease;
+      }
+
+      .switch input:checked + .switch-track {
+        border-color: rgba(99, 214, 160, 0.5);
+        background: rgba(99, 214, 160, 0.24);
+      }
+
+      .switch input:checked + .switch-track::after {
+        background: var(--success);
+        transform: translateX(19px);
+      }
+
+      .switch input:disabled + .switch-track {
+        cursor: not-allowed;
+        opacity: 0.42;
       }
 
       .dialog-footer {
@@ -930,6 +1535,255 @@
         font-size: 12px;
       }
 
+      .ai-key-badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding: 0 10px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 650;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .ai-key-badge.configured {
+        color: var(--success);
+        border-color: rgba(99, 214, 160, 0.36);
+        background: rgba(99, 214, 160, 0.1);
+        box-shadow: 0 0 18px rgba(99, 214, 160, 0.08);
+      }
+
+      .ai-key-badge.error {
+        color: var(--danger);
+        border-color: rgba(255, 125, 139, 0.32);
+        background: rgba(255, 125, 139, 0.08);
+      }
+
+      .sync-dialog {
+        width: min(760px, 100%);
+        max-height: min(82vh, 760px);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .sync-dialog .dialog-body {
+        min-height: 0;
+        overflow-y: auto;
+      }
+
+      .sync-intro {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      .sync-progress {
+        display: grid;
+        min-height: 180px;
+        place-items: center;
+        text-align: center;
+      }
+
+      .sync-progress .loading-ring {
+        margin-bottom: 16px;
+      }
+
+      .sync-progress-title {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      .sync-progress-message {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .sync-dialog-leading {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .sync-reports-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .sync-report-row {
+        width: 100%;
+        padding: 14px 15px;
+        color: var(--text);
+        text-align: left;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.035);
+        transition:
+          border-color 150ms ease,
+          background 150ms ease,
+          transform 150ms ease;
+      }
+
+      .sync-report-row:hover {
+        border-color: rgba(124, 140, 255, 0.36);
+        background: rgba(124, 140, 255, 0.08);
+        transform: translateY(-1px);
+      }
+
+      .sync-report-row-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .sync-report-date {
+        font-size: 13px;
+        font-weight: 650;
+      }
+
+      .sync-report-total {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .sync-report-delta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 10px;
+      }
+
+      .delta-pill {
+        padding: 4px 7px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 650;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.16);
+      }
+
+      .delta-pill.added {
+        color: var(--success);
+      }
+
+      .delta-pill.updated {
+        color: var(--accent-light);
+      }
+
+      .delta-pill.deleted {
+        color: var(--danger);
+      }
+
+      .audit-meta {
+        margin: 0 0 15px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .audit-summary {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .audit-card {
+        padding: 13px 14px;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .audit-card-value {
+        display: block;
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .audit-card-label {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .audit-card.added .audit-card-value {
+        color: var(--success);
+      }
+
+      .audit-card.updated .audit-card-value {
+        color: var(--accent-light);
+      }
+
+      .audit-card.deleted .audit-card-value {
+        color: var(--danger);
+      }
+
+      .audit-section + .audit-section {
+        margin-top: 18px;
+      }
+
+      .audit-section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 0 8px;
+        font-size: 13px;
+      }
+
+      .audit-section-count {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 500;
+      }
+
+      .audit-list {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+      }
+
+      .audit-item {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .audit-item:last-child {
+        border-bottom: 0;
+      }
+
+      .audit-item-name {
+        overflow-wrap: anywhere;
+        font-size: 13px;
+        font-weight: 650;
+      }
+
+      .audit-item-meta,
+      .audit-change {
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+      }
+
+      .audit-change-field {
+        color: var(--accent-light);
+        font-weight: 650;
+      }
+
+      .audit-empty {
+        padding: 13px 14px;
+        color: #737c90;
+        font-size: 12px;
+      }
+
       @keyframes spin {
         to {
           transform: rotate(360deg);
@@ -947,15 +1801,13 @@
           flex-direction: column;
         }
 
-        .sort-control {
+        .admin-button {
           width: 100%;
         }
 
-        .sort-select {
-          width: 100%;
-        }
-
-        .refresh-button {
+        .label-list-button,
+        .logs-button,
+        .sync-button {
           width: 100%;
         }
 
@@ -992,6 +1844,18 @@
           width: 100%;
         }
 
+        .label-filter-button {
+          width: 100%;
+        }
+
+        .source-filter-button {
+          width: 100%;
+        }
+
+        .label-picker {
+          grid-template-columns: 1fr;
+        }
+
         .pagination {
           flex-direction: column;
           align-items: stretch;
@@ -999,6 +1863,29 @@
 
         .pagination-controls {
           justify-content: space-between;
+        }
+
+        .audit-summary {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .ai-panel {
+          padding: 26px 16px 16px;
+        }
+
+        .ai-result-header {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .ai-composer-intro {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .ai-submit,
+        .ai-again {
+          width: 100%;
         }
       }
     </style>
@@ -1038,7 +1925,7 @@
                 id="searchInput"
                 class="search-input"
                 type="search"
-                placeholder='Search terms, e.g. sdk "release build"'
+                placeholder='Enter filtering key word..., e.g., "DT50S"'
                 autocomplete="off"
                 spellcheck="false"
                 aria-label="Search files by one or more terms"
@@ -1074,30 +1961,66 @@
                 OR
               </button>
             </div>
-          </div>
 
-          <div class="sort-control">
-            <svg
-              class="sort-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
+            <button
+              id="labelFilterButton"
+              class="label-filter-button"
+              type="button"
+              title="Filter by labels"
             >
-              <path d="M7 4v16"></path>
-              <path d="m11 8 4-4 4 4"></path>
-              <path d="m11 16 4 4 4-4"></path>
-            </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.6 13.6 11 4H4v7l9.6 9.6a2 2 0 0 0 2.8 0l4.2-4.2a2 2 0 0 0 0-2.8Z"></path>
+                <circle cx="7.5" cy="7.5" r="1"></circle>
+              </svg>
+              <span id="labelFilterButtonLabel">Labels</span>
+            </button>
 
-            <select id="sortSelect" class="sort-select" aria-label="Sort files">
-              <option value="time-desc">Newest first</option>
-              <option value="time-asc">Oldest first</option>
-              <option value="name-asc">Name A → Z</option>
-              <option value="name-desc">Name Z → A</option>
-            </select>
+            <button
+              id="sourceFilterButton"
+              class="source-filter-button"
+              type="button"
+              title="Filter by file source"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 7v5l3 2"></path>
+              </svg>
+              <span id="sourceFilterButtonLabel">Source</span>
+            </button>
           </div>
 
-          <button id="refreshButton" class="refresh-button" type="button">
+          <button
+            id="labelListButton"
+            class="label-list-button is-hidden"
+            type="button"
+            title="Manage labels"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 7h16M4 12h16M4 17h10"></path>
+            </svg>
+            <span>Label List</span>
+          </button>
+
+          <button
+            id="logsButton"
+            class="logs-button is-hidden"
+            type="button"
+            title="Download the last 30 days of activity logs"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 3v12"></path>
+              <path d="m7 10 5 5 5-5"></path>
+              <path d="M5 21h14"></path>
+            </svg>
+            <span id="logsButtonLabel">Logs</span>
+          </button>
+
+          <button
+            id="syncButton"
+            class="sync-button is-hidden"
+            type="button"
+            title="Sync Urovo Product Library"
+          >
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -1107,9 +2030,35 @@
               <path d="M20 12a8 8 0 1 1-2.34-5.66"></path>
               <path d="M20 4v6h-6"></path>
             </svg>
-
-            <span>Refresh</span>
+            <span id="syncButtonLabel">Sync</span>
           </button>
+
+          <button id="uploaderUploadButton" class="admin-button is-hidden" type="button">↑ Upload</button>
+          <button id="adminButton" class="admin-button" type="button">
+            <svg
+              id="adminLockIcon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="5" y="10" width="14" height="10" rx="2"></rect>
+              <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+            </svg>
+            <svg
+              id="adminAiIcon"
+              class="is-hidden"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="m12 3 1.4 4.1L17.5 8.5l-4.1 1.4L12 14l-1.4-4.1-4.1-1.4 4.1-1.4L12 3Z"></path>
+              <path d="m18.5 14 .8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"></path>
+            </svg>
+            <span id="adminButtonLabel">Admin</span>
+          </button>
+
         </div>
 
         <div class="summary">
@@ -1159,13 +2108,284 @@
       </section>
 
       <footer class="footer">
-        Files are served securely through Cloudflare Pages and R2.
+        <span>Developed by Patrick Xu.</span>
+        <span class="footer-separator" aria-hidden="true">·</span>
+        <span id="lastSyncText">Last synced: —</span>
       </footer>
     </main>
 
+    <div id="uploaderDialog" class="dialog-overlay" role="dialog" aria-modal="true" aria-labelledby="uploaderTitle">
+      <div class="dialog" style="max-height:90dvh;overflow:auto">
+        <div class="dialog-header"><h2 id="uploaderTitle" class="dialog-title">Upload a file</h2><button id="uploaderClose" class="dialog-close" type="button" aria-label="Close upload">×</button></div>
+        <div class="dialog-body">
+          <div id="uploaderDrop" tabindex="0" role="button" aria-label="Select or drop a file" style="border:1px dashed #737ac2;border-radius:18px;padding:32px;text-align:center;cursor:pointer">
+            <div id="uploaderEmptyState">
+              <p>Drop a file here or click anywhere to browse</p>
+              <p style="color:var(--text-muted);font-size:13px">Up to 5 GiB · Separate uploader library · Links can be shared publicly</p>
+            </div>
+            <div id="uploaderChosenState" class="is-hidden">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:38px;height:38px;color:#aab1ff" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><path d="M14 2v6h6"></path></svg>
+              <p id="uploaderFilename" style="font-weight:700;overflow-wrap:anywhere;margin:12px 0 4px"></p>
+              <p id="uploaderFilesize" style="color:var(--text-muted);font-size:13px;margin:0"></p>
+            </div>
+          </div>
+          <input id="uploaderFile" type="file" hidden>
+          <div style="margin-top:20px">
+            <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;font-size:13px;color:var(--muted)">
+              <label for="uploaderDescription">Description (optional)</label>
+              <span id="uploaderDescriptionCount">0 / 1500</span>
+            </div>
+            <textarea id="uploaderDescription" class="dialog-textarea" rows="3" maxlength="1500" aria-describedby="uploaderDescriptionCount" placeholder="Add a description to help people find this file" style="min-height:104px;font-family:inherit"></textarea>
+          </div>
+          <div id="uploaderProgressArea" class="is-hidden" style="margin-top:22px">
+            <progress id="uploaderProgress" max="100" value="0" style="width:100%;height:12px;accent-color:#7b87ee" aria-label="Upload progress"></progress>
+            <p id="uploaderStatus" role="status" aria-live="polite" style="overflow-wrap:anywhere;margin-bottom:0">Preparing upload…</p>
+          </div>
+          <div class="dialog-footer" style="justify-content:space-between">
+            <!-- Temporarily disabled. Uncomment to restore the Get Firmware entry.
+            <button id="firmwareOpen" class="dialog-button is-hidden" type="button">Get Firmware</button>
+            -->
+            <button id="uploaderStart" class="copy-button" style="margin-left:auto" type="button" disabled>Upload</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="/uploader-ui.js" defer></script>
+    <div id="firmwareDialog" class="dialog-overlay" style="z-index:1100" role="dialog" aria-modal="true" aria-labelledby="firmwareTitle">
+      <div class="dialog" style="max-height:90vh;overflow:auto">
+        <div class="dialog-header"><h2 id="firmwareTitle" class="dialog-title">Get Firmware</h2><button id="firmwareClose" class="dialog-close" type="button" aria-label="Close firmware dialog">×</button></div>
+        <div class="dialog-body">
+          <p class="settings-hint" style="margin-top:0">Find an RD PRO firmware package and have the server prepare its download link.</p>
+          <form id="firmwareForm">
+            <div class="settings-field"><label class="dialog-label" for="firmwareModel">Internal model</label><input id="firmwareModel" class="dialog-input" maxlength="40" placeholder="e.g. SQ68" required autocomplete="off"></div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:18px">
+              <div class="settings-field" style="flex:2;min-width:180px"><label class="dialog-label" for="firmwareDate">Firmware date</label><input id="firmwareDate" class="dialog-input" type="date" min="2000-01-01" max="2099-12-31" required></div>
+              <div class="settings-field" style="flex:1;min-width:100px"><label class="dialog-label" for="firmwareIndex">Index</label><select id="firmwareIndex" class="dialog-input" aria-label="Firmware index"><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option></select></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:18px"><button id="firmwareFind" class="dialog-button primary" type="submit">Find firmware</button></div>
+          </form>
+          <div id="firmwareCandidates" style="display:grid;gap:10px;margin-top:18px"></div>
+          <div id="firmwareProgressArea" class="is-hidden" style="margin-top:24px" aria-live="polite">
+            <div id="firmwareStages" style="display:flex;flex-wrap:wrap;gap:10px;font-size:12px;margin-bottom:16px"></div>
+            <progress id="firmwareProgress" max="100" style="width:100%;height:12px;accent-color:#7b87ee" aria-label="Firmware task progress"></progress>
+            <p id="firmwareMetrics" class="settings-hint" style="overflow-wrap:anywhere"></p>
+          </div>
+          <p id="firmwareStatus" class="settings-hint" style="overflow-wrap:anywhere" role="status" aria-live="polite"></p>
+          <div id="firmwareResult" class="is-hidden" style="padding:16px;border:1px solid rgba(99,214,160,.3);border-radius:14px;overflow-wrap:anywhere">
+            <p id="firmwareResultName" style="font-weight:650;margin:0 0 14px"></p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap"><a id="firmwareDownload" class="copy-button">Download</a><button id="firmwareCopy" class="copy-button" type="button">Copy link</button></div>
+          </div>
+          <div class="dialog-footer" style="justify-content:flex-end;gap:10px;flex-wrap:wrap"><button id="firmwareResume" class="dialog-button is-hidden" type="button">Resume checking</button><button id="firmwareGet" class="dialog-button primary is-hidden" type="button" disabled>Get selected firmware</button><button id="firmwareDone" class="dialog-button is-hidden" type="button">Done</button></div>
+        </div>
+      </div>
+    </div>
+    <script src="/firmware-ui.js" defer></script>
     <div id="toast" class="toast">
       <span class="toast-dot"></span>
       <span id="toastMessage">Link copied</span>
+    </div>
+
+    <div
+      id="aiVerificationDialog"
+      class="dialog-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="aiVerificationDialogTitle"
+    >
+      <div class="dialog verification-dialog">
+        <div class="dialog-header">
+          <h2 id="aiVerificationDialogTitle" class="dialog-title">
+            Quick verification
+          </h2>
+          <button
+            id="aiVerificationCloseButton"
+            class="dialog-close"
+            type="button"
+            aria-label="Close verification dialog"
+          >
+            ×
+          </button>
+        </div>
+        <div class="dialog-body">
+          <p class="verification-copy">
+            Complete the check to send this question to the library agent.
+          </p>
+          <div id="aiVerificationTurnstile" class="ai-turnstile"></div>
+          <div class="dialog-footer">
+            <span id="aiVerificationStatus" class="dialog-status"></span>
+            <button
+              id="aiVerificationCancelButton"
+              class="dialog-button"
+              type="button"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="adminDialog"
+      class="dialog-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="adminDialogTitle"
+    >
+      <div class="dialog">
+        <div class="dialog-header">
+          <h2 id="adminDialogTitle" class="dialog-title">Admin access</h2>
+          <button
+            id="adminDialogCloseButton"
+            class="dialog-close"
+            type="button"
+            aria-label="Close admin dialog"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="dialog-body">
+          <p class="dialog-file-name">
+            Unlock description editing and file deletion for this page session.
+          </p>
+          <div class="password-input-wrap">
+            <input
+              id="adminPasswordInput"
+              class="dialog-input"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Enter admin password"
+            />
+            <button
+              id="adminPasswordToggle"
+              class="password-toggle"
+              type="button"
+              aria-label="Show password"
+              aria-pressed="false"
+              title="Show password"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+
+          <div class="dialog-footer">
+            <span id="adminDialogStatus" class="dialog-status"></span>
+            <div class="dialog-actions">
+              <button
+                id="adminDialogCancelButton"
+                class="dialog-button"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                id="adminDialogConfirmButton"
+                class="dialog-button primary"
+                type="button"
+              >
+                Unlock
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="labelFilterDialog"
+      class="dialog-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="labelFilterDialogTitle"
+    >
+      <div class="dialog">
+        <div class="dialog-header">
+          <h2 id="labelFilterDialogTitle" class="dialog-title">Filter by labels</h2>
+          <button id="labelFilterCloseButton" class="dialog-close" type="button" aria-label="Close label filter">×</button>
+        </div>
+        <div class="dialog-body">
+          <div id="labelFilterOptions" class="label-picker"></div>
+          <div class="dialog-footer">
+            <span id="labelFilterStatus" class="dialog-status"></span>
+            <div class="dialog-actions">
+              <button id="labelFilterClearButton" class="dialog-button" type="button">Clear</button>
+              <button id="labelFilterCancelButton" class="dialog-button" type="button">Cancel</button>
+              <button id="labelFilterConfirmButton" class="dialog-button primary" type="button">Apply</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="labelManagerDialog"
+      class="dialog-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="labelManagerDialogTitle"
+    >
+      <div class="dialog">
+        <div class="dialog-header">
+          <h2 id="labelManagerDialogTitle" class="dialog-title">Label List</h2>
+          <button id="labelManagerCloseButton" class="dialog-close" type="button" aria-label="Close Label List">×</button>
+        </div>
+        <div class="dialog-body">
+          <div class="label-add-row">
+            <input id="labelManagerInput" class="dialog-input" type="text" maxlength="40" placeholder="Add a label" autocomplete="off" />
+            <button id="labelManagerAddButton" class="dialog-button" type="button">Add</button>
+          </div>
+          <div id="labelManagerList" class="label-manager-list"></div>
+          <div class="dialog-footer">
+            <span id="labelManagerStatus" class="dialog-status"></span>
+            <div class="dialog-actions">
+              <button id="labelManagerCancelButton" class="dialog-button" type="button">Cancel</button>
+              <button id="labelManagerSaveButton" class="dialog-button primary" type="button">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="sourceFilterDialog"
+      class="dialog-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sourceFilterDialogTitle"
+    >
+      <div class="dialog">
+        <div class="dialog-header">
+          <h2 id="sourceFilterDialogTitle" class="dialog-title">Filter by source</h2>
+          <button id="sourceFilterCloseButton" class="dialog-close" type="button" aria-label="Close source filter">×</button>
+        </div>
+        <div class="dialog-body">
+          <div class="label-picker">
+            <label class="label-option">
+              <input type="radio" name="sourceFilter" value="all" />
+              <span>All files</span>
+            </label>
+            <label class="label-option">
+              <input type="radio" name="sourceFilter" value="uploaded" />
+              <span>Uploaded</span>
+            </label>
+            <label class="label-option">
+              <input type="radio" name="sourceFilter" value="official" />
+              <span>Official links</span>
+            </label>
+          </div>
+          <div class="dialog-footer">
+            <span class="dialog-status">Choose one file source.</span>
+            <div class="dialog-actions">
+              <button id="sourceFilterCancelButton" class="dialog-button" type="button">Cancel</button>
+              <button id="sourceFilterConfirmButton" class="dialog-button primary" type="button">Apply</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div
@@ -1197,6 +2417,15 @@
             maxlength="1500"
           ></textarea>
 
+          <div id="dialogLabelSection" class="dialog-label-section is-hidden">
+            <span class="settings-label">Labels</span>
+            <div id="dialogLabelOptions" class="label-picker"></div>
+            <div class="dialog-label-actions">
+              <span id="dialogLabelStatus" class="dialog-status"></span>
+              <button id="dialogLabelSaveButton" class="dialog-button" type="button">Save labels</button>
+            </div>
+          </div>
+
           <div class="dialog-footer">
             <span id="dialogStatus" class="dialog-status"></span>
             <div class="dialog-actions">
@@ -1214,6 +2443,133 @@
               >
                 Save
               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="aiSettingsDialog"
+      class="dialog-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="aiSettingsDialogTitle"
+    >
+      <div class="dialog">
+        <div class="dialog-header">
+          <h2 id="aiSettingsDialogTitle" class="dialog-title">AI Setup</h2>
+          <button
+            id="aiSettingsDialogCloseButton"
+            class="dialog-close"
+            type="button"
+            aria-label="Close AI Setup dialog"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="dialog-body">
+          <div class="settings-grid">
+            <label class="settings-field">
+              <span class="settings-label">Base URL</span>
+              <input
+                id="aiBaseUrlInput"
+                class="dialog-input"
+                type="url"
+                autocomplete="off"
+                placeholder="https://api.openai.com/v1"
+              />
+              <span class="settings-hint">
+                OpenAI-compatible API base URL. The agent appends
+                /chat/completions.
+              </span>
+            </label>
+
+            <label class="settings-field">
+              <span class="settings-label">Model name</span>
+              <input
+                id="aiModelInput"
+                class="dialog-input"
+                type="text"
+                autocomplete="off"
+                placeholder="gpt-5.4"
+                maxlength="200"
+              />
+            </label>
+
+            <div class="settings-toggle">
+              <div class="settings-toggle-copy">
+                <span class="settings-label">AI Enabled</span>
+                <span id="aiEnableHint" class="settings-hint">
+                  Requires Turnstile, D1, and all AI Secrets.
+                </span>
+              </div>
+              <label class="switch" aria-label="Enable AI search">
+                <input id="aiEnabledInput" type="checkbox" />
+                <span class="switch-track"></span>
+              </label>
+            </div>
+
+            <div class="settings-toggle">
+              <div class="settings-toggle-copy">
+                <span class="settings-label">Require human verification</span>
+                <span id="aiHumanVerificationHint" class="settings-hint">
+                  Show Cloudflare Turnstile before each web AI search.
+                </span>
+              </div>
+              <label class="switch" aria-label="Require human verification">
+                <input id="aiHumanVerificationInput" type="checkbox" checked />
+                <span class="switch-track"></span>
+              </label>
+            </div>
+
+            <div class="auto-label-entry">
+              <div class="settings-toggle-copy">
+                <span class="settings-label">Auto Labeling</span>
+                <span class="settings-hint">Preview AI labels for unlabeled uploaded files. Uncertain files stay untouched.</span>
+              </div>
+              <button id="autoLabelOpenButton" class="dialog-button" type="button">Preview</button>
+            </div>
+
+          </div>
+
+          <div class="dialog-footer">
+            <span id="aiSettingsStatus" class="ai-key-badge"></span>
+            <div class="dialog-actions">
+              <button
+                id="aiSettingsSaveButton"
+                class="dialog-button primary"
+                type="button"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="autoLabelDialog"
+      class="dialog-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="autoLabelDialogTitle"
+    >
+      <div class="dialog">
+        <div class="dialog-header">
+          <h2 id="autoLabelDialogTitle" class="dialog-title">Auto Labeling</h2>
+          <button id="autoLabelCloseButton" class="dialog-close" type="button" aria-label="Close Auto Labeling">×</button>
+        </div>
+        <div class="dialog-body">
+          <p id="autoLabelSummary" class="settings-hint">Only unlabeled uploaded files will be considered.</p>
+          <div id="autoLabelResults" class="auto-label-results"></div>
+          <div class="dialog-footer">
+            <span id="autoLabelStatus" class="dialog-status"></span>
+            <div class="dialog-actions">
+              <button id="autoLabelCancelButton" class="dialog-button" type="button">Close</button>
+              <button id="autoLabelApplyButton" class="dialog-button primary" type="button" disabled>Apply labels</button>
             </div>
           </div>
         </div>
@@ -1242,13 +2598,9 @@
 
         <div class="dialog-body">
           <p id="deleteDialogFileName" class="dialog-file-name"></p>
-          <input
-            id="deletePasswordInput"
-            class="dialog-input"
-            type="password"
-            autocomplete="off"
-            placeholder="Enter password to delete"
-          />
+          <p id="deleteDialogMessage" class="dialog-file-name">
+            This permanently removes the file from R2.
+          </p>
 
           <div class="dialog-footer">
             <span id="deleteDialogStatus" class="dialog-status"></span>
@@ -1273,6 +2625,131 @@
       </div>
     </div>
 
+    <div
+      id="syncDialog"
+      class="dialog-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="syncDialogTitle"
+    >
+      <div class="dialog sync-dialog">
+        <div class="dialog-header">
+          <h2 id="syncDialogTitle" class="dialog-title">
+            Sync product library
+          </h2>
+          <button
+            id="syncDialogCloseButton"
+            class="dialog-close"
+            type="button"
+            aria-label="Close sync dialog"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="dialog-body">
+          <div id="syncConfirmView">
+            <p class="sync-intro">
+              Sign in to the Urovo English library, crawl every product page,
+              and publish a new index only after all batches complete. Continue?
+            </p>
+          </div>
+
+          <div id="syncProgressView" class="sync-progress is-hidden">
+            <div>
+              <div class="loading-ring"></div>
+              <h3 class="sync-progress-title">Synchronizing library</h3>
+              <p id="syncProgressMessage" class="sync-progress-message">
+                Starting the Sync Worker…
+              </p>
+            </div>
+          </div>
+
+          <div id="syncReportsView" class="is-hidden">
+            <p class="audit-meta">
+              Select a completed synchronization to inspect its Delta.
+            </p>
+            <div id="syncReportsList" class="sync-reports-list"></div>
+          </div>
+
+          <div id="syncAuditView" class="is-hidden">
+            <p id="auditMeta" class="audit-meta"></p>
+            <div class="audit-summary">
+              <div class="audit-card added">
+                <span id="auditAddedCount" class="audit-card-value">0</span>
+                <span class="audit-card-label">Added</span>
+              </div>
+              <div class="audit-card updated">
+                <span id="auditUpdatedCount" class="audit-card-value">0</span>
+                <span class="audit-card-label">Updated</span>
+              </div>
+              <div class="audit-card deleted">
+                <span id="auditDeletedCount" class="audit-card-value">0</span>
+                <span class="audit-card-label">Deleted</span>
+              </div>
+              <div class="audit-card">
+                <span id="auditUnchangedCount" class="audit-card-value">0</span>
+                <span class="audit-card-label">Unchanged</span>
+              </div>
+            </div>
+
+            <section class="audit-section">
+              <h3 class="audit-section-title">
+                Added
+                <span id="auditAddedLabel" class="audit-section-count"></span>
+              </h3>
+              <div id="auditAddedList" class="audit-list"></div>
+            </section>
+
+            <section class="audit-section">
+              <h3 class="audit-section-title">
+                Updated
+                <span id="auditUpdatedLabel" class="audit-section-count"></span>
+              </h3>
+              <div id="auditUpdatedList" class="audit-list"></div>
+            </section>
+
+            <section class="audit-section">
+              <h3 class="audit-section-title">
+                Deleted
+                <span id="auditDeletedLabel" class="audit-section-count"></span>
+              </h3>
+              <div id="auditDeletedList" class="audit-list"></div>
+            </section>
+          </div>
+
+          <div class="dialog-footer">
+            <div class="sync-dialog-leading">
+              <button
+                id="syncReportButton"
+                class="dialog-button"
+                type="button"
+              >
+                Sync Report
+              </button>
+              <span id="syncDialogStatus" class="dialog-status"></span>
+            </div>
+            <div class="dialog-actions">
+              <button
+                id="syncDialogCancelButton"
+                class="dialog-button"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                id="syncDialogConfirmButton"
+                class="dialog-button primary"
+                type="button"
+              >
+                Start sync
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
       const PAGE_SIZE = 50;
 
@@ -1282,7 +2759,16 @@
         displayedFiles: [],
         loading: false,
         searchMode: "and",
-        sortBy: "time-desc",
+        sourceFilter: "all",
+        sourceFilterDraft: "all",
+        availableLabels: [],
+        selectedLabelFilters: [],
+        labelFilterDraft: [],
+        labelManagerDraft: [],
+        labelManagerSaving: false,
+        logsDownloading: false,
+        activeItemLabelDraft: [],
+        itemLabelsSaving: false,
         currentPage: 1,
         descriptionCache: {},
         activeDescriptionFile: null,
@@ -1290,14 +2776,72 @@
         descriptionSaving: false,
         activeDeleteFile: null,
         deleteSubmitting: false,
+        isAdmin: false,
+        adminPassword: "",
+        uploaderToken: "",
+        adminVerifying: false,
+        aiSettingsLoading: false,
+        aiSettingsSaving: false,
+        autoLabelBusy: false,
+        autoLabelSuggestions: [],
+        autoLabelSelectedKeys: new Set(),
+        aiInfrastructureReady: false,
+        aiInfrastructure: {},
+        aiConfigLoading: true,
+        aiConfig: {
+          enabled: false,
+          ready: false,
+          requireHumanVerification: true,
+          turnstileSiteKey: "",
+        },
+        aiView: "composer",
+        aiPrompt: "",
+        aiError: "",
+        aiResult: null,
+        aiTurnstileWidgetId: null,
+        aiRenderNonce: 0,
+        aiPendingPrompt: "",
+        syncing: false,
+        syncRunId: null,
+        syncPollTimer: null,
+        syncPollFailures: 0,
+        syncReportsLoading: false,
       };
 
       const elements = {
         searchInput: document.getElementById("searchInput"),
         clearButton: document.getElementById("clearButton"),
         searchModeButtons: document.querySelectorAll("[data-search-mode]"),
-        sortSelect: document.getElementById("sortSelect"),
-        refreshButton: document.getElementById("refreshButton"),
+        labelFilterButton: document.getElementById("labelFilterButton"),
+        labelFilterButtonLabel: document.getElementById(
+          "labelFilterButtonLabel",
+        ),
+        sourceFilterButton: document.getElementById("sourceFilterButton"),
+        sourceFilterButtonLabel: document.getElementById(
+          "sourceFilterButtonLabel",
+        ),
+        sourceFilterDialog: document.getElementById("sourceFilterDialog"),
+        sourceFilterCloseButton: document.getElementById(
+          "sourceFilterCloseButton",
+        ),
+        sourceFilterCancelButton: document.getElementById(
+          "sourceFilterCancelButton",
+        ),
+        sourceFilterConfirmButton: document.getElementById(
+          "sourceFilterConfirmButton",
+        ),
+        sourceFilterInputs: document.querySelectorAll(
+          'input[name="sourceFilter"]',
+        ),
+        labelListButton: document.getElementById("labelListButton"),
+        logsButton: document.getElementById("logsButton"),
+        logsButtonLabel: document.getElementById("logsButtonLabel"),
+        adminButton: document.getElementById("adminButton"),
+        adminButtonLabel: document.getElementById("adminButtonLabel"),
+        adminLockIcon: document.getElementById("adminLockIcon"),
+        adminAiIcon: document.getElementById("adminAiIcon"),
+        syncButton: document.getElementById("syncButton"),
+        syncButtonLabel: document.getElementById("syncButtonLabel"),
         summaryPath: document.getElementById("summaryPath"),
         summaryCount: document.getElementById("summaryCount"),
         fileList: document.getElementById("fileList"),
@@ -1307,6 +2851,84 @@
         nextPageButton: document.getElementById("nextPageButton"),
         toast: document.getElementById("toast"),
         toastMessage: document.getElementById("toastMessage"),
+        lastSyncText: document.getElementById("lastSyncText"),
+        aiVerificationDialog: document.getElementById("aiVerificationDialog"),
+        aiVerificationCloseButton: document.getElementById(
+          "aiVerificationCloseButton",
+        ),
+        aiVerificationTurnstile: document.getElementById(
+          "aiVerificationTurnstile",
+        ),
+        aiVerificationStatus: document.getElementById("aiVerificationStatus"),
+        aiVerificationCancelButton: document.getElementById(
+          "aiVerificationCancelButton",
+        ),
+        adminDialog: document.getElementById("adminDialog"),
+        adminDialogCloseButton: document.getElementById(
+          "adminDialogCloseButton",
+        ),
+        adminPasswordInput: document.getElementById("adminPasswordInput"),
+        adminPasswordToggle: document.getElementById("adminPasswordToggle"),
+        adminDialogStatus: document.getElementById("adminDialogStatus"),
+        adminDialogCancelButton: document.getElementById(
+          "adminDialogCancelButton",
+        ),
+        adminDialogConfirmButton: document.getElementById(
+          "adminDialogConfirmButton",
+        ),
+        labelFilterDialog: document.getElementById("labelFilterDialog"),
+        labelFilterCloseButton: document.getElementById(
+          "labelFilterCloseButton",
+        ),
+        labelFilterOptions: document.getElementById("labelFilterOptions"),
+        labelFilterStatus: document.getElementById("labelFilterStatus"),
+        labelFilterClearButton: document.getElementById(
+          "labelFilterClearButton",
+        ),
+        labelFilterCancelButton: document.getElementById(
+          "labelFilterCancelButton",
+        ),
+        labelFilterConfirmButton: document.getElementById(
+          "labelFilterConfirmButton",
+        ),
+        labelManagerDialog: document.getElementById("labelManagerDialog"),
+        labelManagerCloseButton: document.getElementById(
+          "labelManagerCloseButton",
+        ),
+        labelManagerInput: document.getElementById("labelManagerInput"),
+        labelManagerAddButton: document.getElementById("labelManagerAddButton"),
+        labelManagerList: document.getElementById("labelManagerList"),
+        labelManagerStatus: document.getElementById("labelManagerStatus"),
+        labelManagerCancelButton: document.getElementById(
+          "labelManagerCancelButton",
+        ),
+        labelManagerSaveButton: document.getElementById(
+          "labelManagerSaveButton",
+        ),
+        aiSettingsDialog: document.getElementById("aiSettingsDialog"),
+        aiSettingsDialogCloseButton: document.getElementById(
+          "aiSettingsDialogCloseButton",
+        ),
+        aiBaseUrlInput: document.getElementById("aiBaseUrlInput"),
+        aiModelInput: document.getElementById("aiModelInput"),
+        aiEnabledInput: document.getElementById("aiEnabledInput"),
+        aiHumanVerificationInput: document.getElementById(
+          "aiHumanVerificationInput",
+        ),
+        aiHumanVerificationHint: document.getElementById(
+          "aiHumanVerificationHint",
+        ),
+        aiEnableHint: document.getElementById("aiEnableHint"),
+        aiSettingsStatus: document.getElementById("aiSettingsStatus"),
+        aiSettingsSaveButton: document.getElementById("aiSettingsSaveButton"),
+        autoLabelOpenButton: document.getElementById("autoLabelOpenButton"),
+        autoLabelDialog: document.getElementById("autoLabelDialog"),
+        autoLabelCloseButton: document.getElementById("autoLabelCloseButton"),
+        autoLabelCancelButton: document.getElementById("autoLabelCancelButton"),
+        autoLabelApplyButton: document.getElementById("autoLabelApplyButton"),
+        autoLabelSummary: document.getElementById("autoLabelSummary"),
+        autoLabelResults: document.getElementById("autoLabelResults"),
+        autoLabelStatus: document.getElementById("autoLabelStatus"),
         descriptionDialog: document.getElementById("descriptionDialog"),
         dialogCloseButton: document.getElementById("dialogCloseButton"),
         dialogFileName: document.getElementById("dialogFileName"),
@@ -1314,12 +2936,17 @@
         dialogStatus: document.getElementById("dialogStatus"),
         dialogCopyButton: document.getElementById("dialogCopyButton"),
         dialogSaveButton: document.getElementById("dialogSaveButton"),
+        dialogLabelSection: document.getElementById("dialogLabelSection"),
+        dialogLabelOptions: document.getElementById("dialogLabelOptions"),
+        dialogLabelStatus: document.getElementById("dialogLabelStatus"),
+        dialogLabelSaveButton: document.getElementById(
+          "dialogLabelSaveButton",
+        ),
         deleteDialog: document.getElementById("deleteDialog"),
         deleteDialogCloseButton: document.getElementById(
           "deleteDialogCloseButton",
         ),
         deleteDialogFileName: document.getElementById("deleteDialogFileName"),
-        deletePasswordInput: document.getElementById("deletePasswordInput"),
         deleteDialogStatus: document.getElementById("deleteDialogStatus"),
         deleteDialogCancelButton: document.getElementById(
           "deleteDialogCancelButton",
@@ -1327,6 +2954,36 @@
         deleteDialogConfirmButton: document.getElementById(
           "deleteDialogConfirmButton",
         ),
+        syncDialog: document.getElementById("syncDialog"),
+        syncDialogTitle: document.getElementById("syncDialogTitle"),
+        syncDialogCloseButton: document.getElementById(
+          "syncDialogCloseButton",
+        ),
+        syncConfirmView: document.getElementById("syncConfirmView"),
+        syncProgressView: document.getElementById("syncProgressView"),
+        syncProgressMessage: document.getElementById("syncProgressMessage"),
+        syncReportsView: document.getElementById("syncReportsView"),
+        syncReportsList: document.getElementById("syncReportsList"),
+        syncAuditView: document.getElementById("syncAuditView"),
+        syncReportButton: document.getElementById("syncReportButton"),
+        syncDialogStatus: document.getElementById("syncDialogStatus"),
+        syncDialogCancelButton: document.getElementById(
+          "syncDialogCancelButton",
+        ),
+        syncDialogConfirmButton: document.getElementById(
+          "syncDialogConfirmButton",
+        ),
+        auditMeta: document.getElementById("auditMeta"),
+        auditAddedCount: document.getElementById("auditAddedCount"),
+        auditUpdatedCount: document.getElementById("auditUpdatedCount"),
+        auditDeletedCount: document.getElementById("auditDeletedCount"),
+        auditUnchangedCount: document.getElementById("auditUnchangedCount"),
+        auditAddedLabel: document.getElementById("auditAddedLabel"),
+        auditUpdatedLabel: document.getElementById("auditUpdatedLabel"),
+        auditDeletedLabel: document.getElementById("auditDeletedLabel"),
+        auditAddedList: document.getElementById("auditAddedList"),
+        auditUpdatedList: document.getElementById("auditUpdatedList"),
+        auditDeletedList: document.getElementById("auditDeletedList"),
       };
 
       const icons = {
@@ -1395,6 +3052,16 @@
       };
 
       function matchesQuery(text, query) {
+        if (text.includes(query)) {
+          return true;
+        }
+
+        // Product models and other digit-bearing identifiers must not use
+        // subsequence matching: DT630 should never match i6300 or i6310.
+        if (/\d/.test(query) || query.length < 4) {
+          return false;
+        }
+
         let qi = 0;
 
         for (let ti = 0; ti < text.length && qi < query.length; ti++) {
@@ -1425,7 +3092,7 @@
       }
 
       function formatBytes(bytes) {
-        if (!Number.isFinite(bytes) || bytes < 0) {
+        if (bytes === null || !Number.isFinite(bytes) || bytes < 0) {
           return "—";
         }
 
@@ -1476,6 +3143,1299 @@
         }, 2200);
       }
 
+      function renderLabelOptions(container, selected, onChange, emptyText) {
+        container.replaceChildren();
+
+        if (state.availableLabels.length === 0) {
+          const empty = document.createElement("p");
+          empty.className = "label-empty";
+          empty.textContent = emptyText;
+          container.appendChild(empty);
+          return;
+        }
+
+        for (const label of state.availableLabels) {
+          const option = document.createElement("label");
+          option.className = "label-option";
+          const input = document.createElement("input");
+          input.type = "checkbox";
+          input.checked = selected.includes(label);
+          const text = document.createElement("span");
+          text.textContent = label;
+          input.addEventListener("change", () => onChange(label, input.checked));
+          option.append(input, text);
+          container.appendChild(option);
+        }
+      }
+
+      function updateLabelFilterButton() {
+        const count = state.selectedLabelFilters.length;
+        elements.labelFilterButton.classList.toggle("active", count > 0);
+        elements.labelFilterButtonLabel.textContent = count > 0
+          ? `Labels (${count})`
+          : "Labels";
+      }
+
+      function closeLabelFilterDialog() {
+        elements.labelFilterDialog.classList.remove("visible");
+        elements.labelFilterStatus.textContent = "";
+      }
+
+      function openLabelFilterDialog() {
+        state.labelFilterDraft = [...state.selectedLabelFilters];
+        renderLabelOptions(
+          elements.labelFilterOptions,
+          state.labelFilterDraft,
+          (label, checked) => {
+            state.labelFilterDraft = checked
+              ? [...new Set([...state.labelFilterDraft, label])]
+              : state.labelFilterDraft.filter((value) => value !== label);
+          },
+          "No labels have been created yet.",
+        );
+        elements.labelFilterStatus.textContent =
+          "Selected labels are combined with AND.";
+        elements.labelFilterDialog.classList.add("visible");
+      }
+
+      function applyLabelFilter() {
+        state.selectedLabelFilters = [...state.labelFilterDraft];
+        updateLabelFilterButton();
+        closeLabelFilterDialog();
+        resetToFirstPage();
+        renderFiles();
+      }
+
+      function clearLabelFilter() {
+        state.selectedLabelFilters = [];
+        state.labelFilterDraft = [];
+        updateLabelFilterButton();
+        closeLabelFilterDialog();
+        resetToFirstPage();
+        renderFiles();
+      }
+
+      function updateSourceFilterButton() {
+        const labels = {
+          all: "Source",
+          uploaded: "Uploaded",
+          official: "Official links",
+        };
+        elements.sourceFilterButtonLabel.textContent =
+          labels[state.sourceFilter] || labels.all;
+        elements.sourceFilterButton.classList.toggle(
+          "active",
+          state.sourceFilter !== "all",
+        );
+      }
+
+      function closeSourceFilterDialog() {
+        elements.sourceFilterDialog.classList.remove("visible");
+      }
+
+      function openSourceFilterDialog() {
+        state.sourceFilterDraft = state.sourceFilter;
+        for (const input of elements.sourceFilterInputs) {
+          input.checked = input.value === state.sourceFilterDraft;
+        }
+        elements.sourceFilterDialog.classList.add("visible");
+      }
+
+      function applySourceFilter() {
+        state.sourceFilter = state.sourceFilterDraft;
+        updateSourceFilterButton();
+        closeSourceFilterDialog();
+        resetToFirstPage();
+        renderFiles();
+      }
+
+      function renderLabelManagerList() {
+        elements.labelManagerList.replaceChildren();
+
+        if (state.labelManagerDraft.length === 0) {
+          const empty = document.createElement("p");
+          empty.className = "label-empty";
+          empty.textContent = "No labels yet.";
+          elements.labelManagerList.appendChild(empty);
+          return;
+        }
+
+        for (const label of state.labelManagerDraft) {
+          const row = document.createElement("div");
+          row.className = "label-manager-item";
+          const chip = document.createElement("span");
+          chip.className = "label-chip";
+          chip.textContent = label;
+          const remove = document.createElement("button");
+          remove.className = "label-manager-delete";
+          remove.type = "button";
+          remove.textContent = "Delete";
+          remove.addEventListener("click", () => {
+            state.labelManagerDraft = state.labelManagerDraft.filter(
+              (value) => value !== label,
+            );
+            renderLabelManagerList();
+          });
+          row.append(chip, remove);
+          elements.labelManagerList.appendChild(row);
+        }
+      }
+
+      function closeLabelManagerDialog(force = false) {
+        if (state.labelManagerSaving && !force) return;
+        elements.labelManagerDialog.classList.remove("visible");
+        elements.labelManagerStatus.textContent = "";
+        elements.labelManagerInput.value = "";
+      }
+
+      function openLabelManagerDialog() {
+        if (!state.isAdmin) return;
+        state.labelManagerDraft = [...state.availableLabels];
+        elements.labelManagerStatus.textContent = "";
+        renderLabelManagerList();
+        elements.labelManagerDialog.classList.add("visible");
+        elements.labelManagerInput.focus();
+      }
+
+      function addLabelDraft() {
+        const label = elements.labelManagerInput.value.normalize("NFKC").trim();
+        if (!label) return;
+        if (label.length > 40) {
+          elements.labelManagerStatus.textContent =
+            "Labels can contain at most 40 characters.";
+          return;
+        }
+        if (state.labelManagerDraft.some(
+          (value) => value.toLocaleLowerCase() === label.toLocaleLowerCase(),
+        )) {
+          elements.labelManagerStatus.textContent = "That label already exists.";
+          return;
+        }
+        if (state.labelManagerDraft.length >= 50) {
+          elements.labelManagerStatus.textContent = "The 50-label limit has been reached.";
+          return;
+        }
+        state.labelManagerDraft.push(label);
+        elements.labelManagerInput.value = "";
+        elements.labelManagerStatus.textContent = "";
+        renderLabelManagerList();
+        elements.labelManagerInput.focus();
+      }
+
+      function applyAvailableLabels(labels) {
+        state.availableLabels = Array.isArray(labels) ? labels : [];
+        const valid = new Set(state.availableLabels);
+        state.selectedLabelFilters = state.selectedLabelFilters.filter(
+          (label) => valid.has(label),
+        );
+        for (const file of state.files) {
+          file.labels = (Array.isArray(file.labels) ? file.labels : []).filter(
+            (label) => valid.has(label),
+          );
+        }
+        if (Array.isArray(state.aiResult?.matches)) {
+          for (const file of state.aiResult.matches) {
+            file.labels = (Array.isArray(file.labels) ? file.labels : []).filter(
+              (label) => valid.has(label),
+            );
+          }
+        }
+        updateLabelFilterButton();
+      }
+
+      async function saveLabelList() {
+        if (!state.isAdmin || state.labelManagerSaving) return;
+        state.labelManagerSaving = true;
+        elements.labelManagerSaveButton.disabled = true;
+        elements.labelManagerSaveButton.textContent = "Saving…";
+        elements.labelManagerStatus.textContent = "";
+
+        try {
+          const response = await fetch("/api/labels", {
+            method: "PUT",
+            headers: { Accept: "application/json", "Content-Type": "application/json" },
+            body: JSON.stringify({
+              password: state.adminPassword,
+              labels: state.labelManagerDraft,
+            }),
+          });
+          const payload = await response.json();
+          if (!response.ok) {
+            if (response.status === 401) exitAdmin();
+            throw new Error(payload.error || "Could not save labels.");
+          }
+          applyAvailableLabels(payload.labels);
+          closeLabelManagerDialog(true);
+          renderFiles();
+          showToast("Label List saved");
+        } catch (error) {
+          elements.labelManagerStatus.textContent = error instanceof Error
+            ? error.message
+            : "Could not save labels.";
+        } finally {
+          state.labelManagerSaving = false;
+          elements.labelManagerSaveButton.disabled = false;
+          elements.labelManagerSaveButton.textContent = "Save";
+        }
+      }
+
+      function renderItemLabelEditor() {
+        elements.dialogLabelSection.classList.toggle("is-hidden", !state.isAdmin);
+        if (!state.isAdmin) return;
+        renderLabelOptions(
+          elements.dialogLabelOptions,
+          state.activeItemLabelDraft,
+          (label, checked) => {
+            state.activeItemLabelDraft = checked
+              ? [...new Set([...state.activeItemLabelDraft, label])]
+              : state.activeItemLabelDraft.filter((value) => value !== label);
+          },
+          "Create labels from Label List first.",
+        );
+      }
+
+      async function saveItemLabels() {
+        const file = state.activeDescriptionFile;
+        if (!file || !state.isAdmin || state.itemLabelsSaving) return;
+        state.itemLabelsSaving = true;
+        updateDescriptionDialogUi();
+        elements.dialogLabelStatus.textContent = "Saving labels…";
+
+        try {
+          const response = await fetch("/api/labels", {
+            method: "PATCH",
+            headers: { Accept: "application/json", "Content-Type": "application/json" },
+            body: JSON.stringify({
+              password: state.adminPassword,
+              key: file.key,
+              labels: state.activeItemLabelDraft,
+            }),
+          });
+          const payload = await response.json();
+          if (!response.ok) {
+            if (response.status === 401) exitAdmin();
+            throw new Error(payload.error || "Could not save item labels.");
+          }
+          const labels = Array.isArray(payload.labels) ? payload.labels : [];
+          for (const item of state.files) {
+            if (item.key === file.key) item.labels = [...labels];
+          }
+          if (Array.isArray(state.aiResult?.matches)) {
+            for (const item of state.aiResult.matches) {
+              if (item.key === file.key) item.labels = [...labels];
+            }
+          }
+          file.labels = [...labels];
+          state.activeItemLabelDraft = [...labels];
+          elements.dialogLabelStatus.textContent = "Labels saved";
+          renderFiles();
+          showToast("Labels saved");
+        } catch (error) {
+          elements.dialogLabelStatus.textContent = error instanceof Error
+            ? error.message
+            : "Could not save item labels.";
+        } finally {
+          state.itemLabelsSaving = false;
+          updateDescriptionDialogUi();
+        }
+      }
+
+      function updateAdminUi() {
+        document.getElementById("uploaderUploadButton").classList.toggle("is-hidden", !state.uploaderToken);
+        elements.adminButton.classList.toggle("active", state.isAdmin);
+        elements.adminButtonLabel.textContent = state.isAdmin
+          ? "AI Setup"
+          : state.uploaderToken ? "Exit Uploader" : "Admin";
+        elements.adminLockIcon.classList.toggle("is-hidden", state.isAdmin);
+        elements.adminAiIcon.classList.toggle("is-hidden", !state.isAdmin);
+        elements.adminButton.title = state.isAdmin
+          ? "Configure AI"
+          : "Unlock admin mode";
+        elements.syncButton.classList.toggle("is-hidden", !state.isAdmin);
+        elements.syncButton.classList.toggle("loading", state.syncing);
+        elements.syncButton.disabled = state.syncing;
+        elements.syncButtonLabel.textContent = state.syncing
+          ? "Syncing…"
+          : "Sync";
+        elements.labelListButton.classList.toggle("is-hidden", !state.isAdmin);
+        elements.logsButton.classList.toggle("is-hidden", !state.isAdmin);
+      }
+
+      function setSyncDialogView(view) {
+        elements.syncConfirmView.classList.toggle("is-hidden", view !== "confirm");
+        elements.syncProgressView.classList.toggle("is-hidden", view !== "progress");
+        elements.syncReportsView.classList.toggle("is-hidden", view !== "reports");
+        elements.syncAuditView.classList.toggle("is-hidden", view !== "audit");
+      }
+
+      function closeSyncDialog(force = false) {
+        if (state.syncing && !force) {
+          return;
+        }
+
+        elements.syncDialog.classList.remove("visible");
+        elements.syncDialogStatus.textContent = "";
+      }
+
+      function openSyncDialog() {
+        if (!state.isAdmin) {
+          return;
+        }
+
+        if (state.syncing) {
+          elements.syncDialog.classList.add("visible");
+          return;
+        }
+
+        elements.syncDialogTitle.textContent = "Sync product library";
+        elements.syncProgressView.querySelector(".loading-ring").classList.remove(
+          "is-hidden",
+        );
+        elements.syncDialogStatus.textContent = "";
+        elements.syncDialogCancelButton.textContent = "Cancel";
+        elements.syncDialogCancelButton.disabled = false;
+        elements.syncDialogConfirmButton.textContent = "Start sync";
+        elements.syncDialogConfirmButton.classList.remove("is-hidden");
+        elements.syncDialogConfirmButton.disabled = false;
+        elements.syncReportButton.classList.remove("is-hidden");
+        elements.syncReportButton.disabled = false;
+        elements.syncReportButton.textContent = "Sync Report";
+        setSyncDialogView("confirm");
+        elements.syncDialog.classList.add("visible");
+      }
+
+      function scheduleSyncPoll(delay = 1800) {
+        window.clearTimeout(state.syncPollTimer);
+        state.syncPollTimer = window.setTimeout(pollSyncStatus, delay);
+      }
+
+      function auditValue(field, value) {
+        if (value === null || value === undefined || value === "") {
+          return "—";
+        }
+
+        if (field === "size" && Number.isFinite(value)) {
+          return formatBytes(value);
+        }
+
+        if (field === "sourceUpdatedAt") {
+          return formatDate(value);
+        }
+
+        return String(value);
+      }
+
+      function auditFieldLabel(field) {
+        return {
+          documentType: "type",
+          sourceUpdatedAt: "source date",
+        }[field] || field;
+      }
+
+      function renderAuditList(container, entries, type) {
+        container.replaceChildren();
+
+        if (!entries.length) {
+          const empty = document.createElement("div");
+          empty.className = "audit-empty";
+          empty.textContent = `No ${type} records.`;
+          container.append(empty);
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        for (const entry of entries) {
+          const item = document.createElement("div");
+          item.className = "audit-item";
+
+          const name = document.createElement("div");
+          name.className = "audit-item-name";
+          name.textContent = entry.name || entry.key || "Unnamed record";
+          item.append(name);
+
+          const meta = document.createElement("div");
+          meta.className = "audit-item-meta";
+          meta.textContent = [entry.product, entry.documentType]
+            .filter(Boolean)
+            .join(" · ") || "Urovo product library";
+          item.append(meta);
+
+          if (type === "updated") {
+            for (const change of Array.isArray(entry.changes)
+              ? entry.changes
+              : []) {
+              const detail = document.createElement("div");
+              detail.className = "audit-change";
+
+              const field = document.createElement("span");
+              field.className = "audit-change-field";
+              field.textContent = `${auditFieldLabel(change.field)}: `;
+              detail.append(
+                field,
+                document.createTextNode(
+                  `${auditValue(change.field, change.before)} → ${auditValue(change.field, change.after)}`,
+                ),
+              );
+              item.append(detail);
+            }
+          } else {
+            const detail = document.createElement("div");
+            detail.className = "audit-change";
+            detail.textContent = entry.url || entry.key || "";
+            item.append(detail);
+          }
+
+          fragment.append(item);
+        }
+
+        container.append(fragment);
+      }
+
+      function renderSyncReports(reports) {
+        elements.syncReportsList.replaceChildren();
+
+        if (!reports.length) {
+          const empty = document.createElement("div");
+          empty.className = "audit-empty";
+          empty.textContent = "No completed Sync Reports are available yet.";
+          elements.syncReportsList.append(empty);
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        for (const report of reports) {
+          const row = document.createElement("button");
+          row.className = "sync-report-row";
+          row.type = "button";
+
+          const head = document.createElement("div");
+          head.className = "sync-report-row-head";
+
+          const date = document.createElement("span");
+          date.className = "sync-report-date";
+          date.textContent = formatDate(report.completedAt);
+
+          const total = document.createElement("span");
+          total.className = "sync-report-total";
+          total.textContent = `${report.beforeCount ?? "—"} → ${report.afterCount ?? "—"} records`;
+          head.append(date, total);
+
+          const delta = document.createElement("div");
+          delta.className = "sync-report-delta";
+          const values = [
+            ["added", "Added", report.summary?.added],
+            ["updated", "Updated", report.summary?.updated],
+            ["deleted", "Deleted", report.summary?.deleted],
+            ["unchanged", "Unchanged", report.summary?.unchanged],
+          ];
+
+          for (const [className, label, value] of values) {
+            const pill = document.createElement("span");
+            pill.className = `delta-pill ${className}`;
+            pill.textContent = `${label} ${Number.isFinite(value) ? value : 0}`;
+            delta.append(pill);
+          }
+
+          row.append(head, delta);
+          row.addEventListener("click", () => loadSyncReport(report.runId));
+          fragment.append(row);
+        }
+
+        elements.syncReportsList.append(fragment);
+      }
+
+      async function openSyncReports() {
+        if (!state.isAdmin || state.syncing || state.syncReportsLoading) {
+          return;
+        }
+
+        state.syncReportsLoading = true;
+        elements.syncDialog.classList.add("visible");
+        elements.syncDialogTitle.textContent = "Sync Reports";
+        elements.syncDialogStatus.textContent = "Loading reports…";
+        elements.syncDialogCancelButton.textContent = "Close";
+        elements.syncDialogCancelButton.disabled = false;
+        elements.syncDialogConfirmButton.classList.add("is-hidden");
+        elements.syncReportButton.classList.add("is-hidden");
+        setSyncDialogView("reports");
+        elements.syncReportsList.innerHTML = `
+          <div class="sync-progress">
+            <div>
+              <div class="loading-ring"></div>
+              <p class="sync-progress-message">Reading audit history from R2…</p>
+            </div>
+          </div>
+        `;
+
+        try {
+          const response = await fetch("/api/sync-reports", {
+            headers: {
+              Accept: "application/json",
+              "X-Admin-Password": state.adminPassword,
+            },
+            cache: "no-store",
+          });
+          const payload = await response.json();
+
+          if (!response.ok) {
+            if (response.status === 401) {
+              exitAdmin();
+            }
+            throw new Error(payload.error || "Could not load Sync Reports.");
+          }
+
+          const reports = Array.isArray(payload.reports) ? payload.reports : [];
+          renderSyncReports(reports);
+          elements.syncDialogStatus.textContent =
+            `${reports.length} completed report${reports.length === 1 ? "" : "s"}`;
+        } catch (error) {
+          elements.syncReportsList.replaceChildren();
+          const message = document.createElement("div");
+          message.className = "audit-empty";
+          message.textContent =
+            error instanceof Error
+              ? error.message
+              : "Could not load Sync Reports.";
+          elements.syncReportsList.append(message);
+          elements.syncDialogStatus.textContent = "Report history unavailable";
+        } finally {
+          state.syncReportsLoading = false;
+        }
+      }
+
+      async function loadSyncReport(runId) {
+        if (!state.isAdmin || state.syncing || !runId) {
+          return;
+        }
+
+        elements.syncDialogStatus.textContent = "Loading report…";
+        elements.syncReportsList
+          .querySelectorAll("button")
+          .forEach((button) => (button.disabled = true));
+
+        try {
+          const response = await fetch(
+            `/api/sync-reports?runId=${encodeURIComponent(runId)}`,
+            {
+              headers: {
+                Accept: "application/json",
+                "X-Admin-Password": state.adminPassword,
+              },
+              cache: "no-store",
+            },
+          );
+          const payload = await response.json();
+
+          if (!response.ok || !payload.audit) {
+            if (response.status === 401) {
+              exitAdmin();
+            }
+            throw new Error(payload.error || "Could not load Sync Report.");
+          }
+
+          renderSyncAudit(payload.audit, {
+            completedAt: payload.audit.completedAt,
+            recordCount: payload.audit.afterCount,
+            diff: payload.audit.summary,
+          });
+        } catch (error) {
+          elements.syncDialogStatus.textContent =
+            error instanceof Error
+              ? error.message
+              : "Could not load Sync Report.";
+          elements.syncReportsList
+            .querySelectorAll("button")
+            .forEach((button) => (button.disabled = false));
+        }
+      }
+
+      function renderSyncAudit(audit, status) {
+        const summary = audit?.summary || status?.diff || {};
+        const changes = audit?.changes || {};
+        const added = Array.isArray(changes.added) ? changes.added : [];
+        const updated = Array.isArray(changes.updated) ? changes.updated : [];
+        const deleted = Array.isArray(changes.deleted) ? changes.deleted : [];
+        const count = (value, fallback) =>
+          Number.isFinite(value) ? value : fallback;
+
+        elements.auditAddedCount.textContent = count(summary.added, added.length);
+        elements.auditUpdatedCount.textContent = count(
+          summary.updated,
+          updated.length,
+        );
+        elements.auditDeletedCount.textContent = count(
+          summary.deleted,
+          deleted.length,
+        );
+        elements.auditUnchangedCount.textContent = count(summary.unchanged, 0);
+        elements.auditAddedLabel.textContent = `${added.length} records`;
+        elements.auditUpdatedLabel.textContent = `${updated.length} records`;
+        elements.auditDeletedLabel.textContent = `${deleted.length} records`;
+
+        const beforeCount = Number.isFinite(audit?.beforeCount)
+          ? audit.beforeCount
+          : "—";
+        const afterCount = Number.isFinite(audit?.afterCount)
+          ? audit.afterCount
+          : status?.recordCount ?? "—";
+        const duration = Number.isFinite(audit?.durationMs)
+          ? ` · ${(audit.durationMs / 1000).toFixed(1)}s`
+          : "";
+        const cleanup = audit?.persistenceCleanup || status?.persistenceCleanup;
+        const cleanupSummary = cleanup?.pending
+          ? " · Metadata cleanup pending retry"
+          : Number(cleanup?.attempted) > 0
+            ? ` · Removed ${Number(cleanup.labelsRemoved) || 0} label and ${Number(cleanup.descriptionsRemoved) || 0} description assignments`
+            : "";
+        elements.auditMeta.textContent =
+          `${beforeCount} → ${afterCount} records · Completed ${formatDate(status?.completedAt)}` +
+          duration +
+          cleanupSummary;
+
+        renderAuditList(elements.auditAddedList, added, "added");
+        renderAuditList(elements.auditUpdatedList, updated, "updated");
+        renderAuditList(elements.auditDeletedList, deleted, "deleted");
+
+        elements.syncDialogTitle.textContent = "Sync audit report";
+        elements.syncDialogStatus.textContent = cleanup?.pending
+          ? "Index published · Metadata cleanup will retry on the next sync"
+          : "Index published successfully";
+        elements.syncDialogCancelButton.textContent = "Close";
+        elements.syncDialogCancelButton.disabled = false;
+        elements.syncDialogConfirmButton.classList.add("is-hidden");
+        elements.syncReportButton.classList.remove("is-hidden");
+        elements.syncReportButton.disabled = false;
+        elements.syncReportButton.textContent = "All Reports";
+        setSyncDialogView("audit");
+      }
+
+      function failSync(message) {
+        window.clearTimeout(state.syncPollTimer);
+        state.syncing = false;
+        state.syncRunId = null;
+        updateAdminUi();
+
+        elements.syncDialogTitle.textContent = "Sync failed";
+        elements.syncProgressView.querySelector(".loading-ring").classList.add(
+          "is-hidden",
+        );
+        elements.syncProgressView.querySelector(
+          ".sync-progress-title",
+        ).textContent = "The existing index was kept";
+        elements.syncProgressMessage.textContent = message;
+        elements.syncDialogStatus.textContent = "No library changes published";
+        elements.syncDialogCancelButton.textContent = "Close";
+        elements.syncDialogCancelButton.disabled = false;
+        elements.syncDialogConfirmButton.textContent = "Try again";
+        elements.syncDialogConfirmButton.classList.remove("is-hidden");
+        elements.syncDialogConfirmButton.disabled = false;
+        elements.syncReportButton.classList.remove("is-hidden");
+        elements.syncReportButton.disabled = false;
+        elements.syncReportButton.textContent = "Sync Report";
+        setSyncDialogView("progress");
+      }
+
+      async function pollSyncStatus() {
+        if (!state.syncing || !state.isAdmin) {
+          return;
+        }
+
+        try {
+          const response = await fetch("/api/sync", {
+            headers: {
+              Accept: "application/json",
+              "X-Admin-Password": state.adminPassword,
+            },
+            cache: "no-store",
+          });
+          const payload = await response.json();
+
+          if (!response.ok) {
+            if (response.status === 401) {
+              state.syncing = false;
+              exitAdmin();
+            }
+            throw new Error(payload.error || "Could not read sync status.");
+          }
+
+          state.syncPollFailures = 0;
+          const status = payload.status || {};
+
+          if (status.runId !== state.syncRunId) {
+            elements.syncProgressMessage.textContent =
+              "Waiting for the queued run to begin…";
+            scheduleSyncPoll();
+            return;
+          }
+
+          if (status.state === "running") {
+            elements.syncProgressMessage.textContent =
+              "Crawling product pages in protected batches…";
+            scheduleSyncPoll();
+            return;
+          }
+
+          if (status.state === "complete") {
+            window.clearTimeout(state.syncPollTimer);
+            state.syncing = false;
+            updateAdminUi();
+            renderSyncAudit(payload.audit, status);
+            showToast("Product library synchronized");
+            await loadFiles();
+            return;
+          }
+
+          if (status.state === "failed") {
+            failSync(status.error || "The Sync Worker reported a failure.");
+            return;
+          }
+
+          scheduleSyncPoll();
+        } catch (error) {
+          state.syncPollFailures += 1;
+
+          if (state.syncPollFailures >= 5) {
+            failSync(
+              error instanceof Error
+                ? error.message
+                : "Could not monitor the sync run.",
+            );
+            return;
+          }
+
+          elements.syncProgressMessage.textContent =
+            "Connection interrupted; retrying status check…";
+          scheduleSyncPoll(2500);
+        }
+      }
+
+      async function startManualSync() {
+        if (!state.isAdmin || state.syncing) {
+          return;
+        }
+
+        state.syncing = true;
+        state.syncRunId = null;
+        state.syncPollFailures = 0;
+        updateAdminUi();
+
+        elements.syncDialogTitle.textContent = "Sync product library";
+        elements.syncProgressView.querySelector(".loading-ring").classList.remove(
+          "is-hidden",
+        );
+        elements.syncProgressView.querySelector(
+          ".sync-progress-title",
+        ).textContent = "Synchronizing library";
+        elements.syncProgressMessage.textContent = "Starting the Sync Worker…";
+        elements.syncDialogStatus.textContent = "This can take a few minutes";
+        elements.syncDialogCancelButton.disabled = true;
+        elements.syncDialogConfirmButton.disabled = true;
+        elements.syncDialogConfirmButton.classList.add("is-hidden");
+        elements.syncReportButton.disabled = true;
+        setSyncDialogView("progress");
+
+        try {
+          const response = await fetch("/api/sync", {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ password: state.adminPassword }),
+          });
+          const payload = await response.json();
+
+          if (!response.ok || !payload.runId) {
+            if (response.status === 401) {
+              state.syncing = false;
+              exitAdmin();
+            }
+            throw new Error(
+              payload.detail || payload.error || "Could not start sync.",
+            );
+          }
+
+          state.syncRunId = payload.runId;
+          elements.syncProgressMessage.textContent = payload.alreadyRunning
+            ? "Attached to the sync already in progress…"
+            : "Product catalog loaded; crawling document pages…";
+          scheduleSyncPoll(900);
+        } catch (error) {
+          failSync(
+            error instanceof Error ? error.message : "Could not start sync.",
+          );
+        }
+      }
+
+      function setAdminPasswordVisible(visible) {
+        elements.adminPasswordInput.type = visible ? "text" : "password";
+        elements.adminPasswordToggle.setAttribute(
+          "aria-pressed",
+          String(visible),
+        );
+        elements.adminPasswordToggle.setAttribute(
+          "aria-label",
+          visible ? "Hide password" : "Show password",
+        );
+        elements.adminPasswordToggle.title = visible
+          ? "Hide password"
+          : "Show password";
+      }
+
+      function closeAdminDialog() {
+        if (state.adminVerifying) {
+          return;
+        }
+
+        elements.adminDialog.classList.remove("visible");
+        elements.adminPasswordInput.value = "";
+        setAdminPasswordVisible(false);
+        elements.adminPasswordInput.disabled = false;
+        elements.adminDialogConfirmButton.disabled = false;
+        elements.adminDialogConfirmButton.textContent = "Unlock";
+        elements.adminDialogStatus.textContent = "";
+      }
+
+      function exitAdmin() {
+        if (state.syncing) {
+          showToast("Wait for the active sync to finish");
+          return;
+        }
+
+        state.isAdmin = false;
+        state.adminPassword = "";
+        state.uploaderToken = "";
+        state.autoLabelBusy = false;
+        closeAutoLabelDialog();
+        closeAiSettingsDialog(true);
+        closeSyncDialog(true);
+        closeLabelManagerDialog(true);
+        updateAdminUi();
+        closeDeleteDialog();
+        updateDescriptionDialogUi();
+        renderItemLabelEditor();
+        renderFiles();
+      }
+
+      function openAdminDialog() {
+        if (state.uploaderToken && !state.isAdmin) {
+          if (window.uploaderBusy) { showToast("Finish or cancel the upload first"); return; }
+          state.uploaderToken = "";
+          state.aiResult = null;
+          state.aiView = "composer";
+          state.files = [];
+          state.descriptionCache = {};
+          closeDescriptionDialog();
+          updateAdminUi();
+          loadFiles();
+          return;
+        }
+        if (state.isAdmin) {
+          openAiSettingsDialog();
+          return;
+        }
+
+        elements.adminDialog.classList.add("visible");
+        elements.adminPasswordInput.focus();
+      }
+
+      async function verifyAdmin() {
+        const password = elements.adminPasswordInput.value;
+
+        if (!password || state.adminVerifying) {
+          elements.adminDialogStatus.textContent = "Password required.";
+          return;
+        }
+
+        state.adminVerifying = true;
+        elements.adminPasswordInput.disabled = true;
+        elements.adminDialogConfirmButton.disabled = true;
+        elements.adminDialogConfirmButton.textContent = "Verifying…";
+        elements.adminDialogStatus.textContent = "";
+
+        try {
+          const response = await fetch("/api/admin", {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ password }),
+          });
+          const payload = await response.json();
+
+          if (!response.ok || payload.authorized !== true) {
+            throw new Error(payload.error || "Unauthorized.");
+          }
+
+          state.isAdmin = payload.role !== "uploader";
+          state.uploaderToken = payload.token || "";
+          state.adminPassword = state.isAdmin ? password : "";
+          state.aiResult = null;
+          state.aiView = "composer";
+          state.adminVerifying = false;
+          closeAdminDialog();
+          updateAdminUi();
+          updateDescriptionDialogUi();
+          renderItemLabelEditor();
+          renderFiles();
+          await loadFiles();
+          showToast(state.isAdmin ? "Admin mode enabled" : "Uploader mode enabled");
+          return;
+        } catch (error) {
+          elements.adminDialogStatus.textContent =
+            error instanceof Error && error.message === "Unauthorized."
+              ? "Wrong password."
+              : "Could not verify password.";
+        } finally {
+          state.adminVerifying = false;
+          elements.adminPasswordInput.disabled = false;
+          elements.adminDialogConfirmButton.disabled = false;
+          elements.adminDialogConfirmButton.textContent = "Unlock";
+          elements.adminPasswordInput.focus();
+          elements.adminPasswordInput.select();
+        }
+      }
+
+      function updateAiSettingsUi() {
+        const busy = state.aiSettingsLoading || state.aiSettingsSaving;
+        const infrastructure = state.aiInfrastructure || {};
+        const requiresVerification =
+          elements.aiHumanVerificationInput.checked;
+        state.aiInfrastructureReady = Boolean(
+          infrastructure.apiKey &&
+          infrastructure.sessionSecret &&
+          infrastructure.database &&
+          infrastructure.bucket &&
+          (!requiresVerification ||
+            (infrastructure.turnstileSiteKey &&
+              infrastructure.turnstileSecretKey)),
+        );
+        elements.aiBaseUrlInput.disabled = busy;
+        elements.aiModelInput.disabled = busy;
+        elements.aiHumanVerificationInput.disabled = busy;
+        elements.aiEnabledInput.disabled = busy || !state.aiInfrastructureReady;
+        elements.autoLabelOpenButton.disabled = busy || state.autoLabelBusy;
+        elements.aiSettingsSaveButton.disabled = busy;
+        elements.aiSettingsSaveButton.textContent = state.aiSettingsSaving
+          ? "Saving…"
+          : "Save";
+        elements.aiEnableHint.textContent = state.aiInfrastructureReady
+          ? requiresVerification
+            ? "Public AI search uses Turnstile when enabled."
+            : "Public AI search skips Turnstile; D1 limits remain active."
+          : requiresVerification
+            ? "Requires Turnstile, D1, and all AI Secrets."
+            : "Requires the API key, session Secret, D1, and R2.";
+        elements.aiHumanVerificationHint.textContent = requiresVerification
+          ? "Show Cloudflare Turnstile before each web AI search."
+          : "Turnstile is skipped; usage limits still apply.";
+      }
+
+      function setAiSettingsStatus(message, type = "neutral") {
+        elements.aiSettingsStatus.textContent = message;
+        elements.aiSettingsStatus.classList.toggle(
+          "configured",
+          type === "configured",
+        );
+        elements.aiSettingsStatus.classList.toggle("error", type === "error");
+      }
+
+      function updateAutoLabelApplyButton() {
+        const count = state.autoLabelSelectedKeys.size;
+        elements.autoLabelApplyButton.disabled = state.autoLabelBusy || count === 0;
+        elements.autoLabelApplyButton.textContent = state.autoLabelBusy
+          ? "Working…"
+          : `Apply ${count} label${count === 1 ? "" : "s"}`;
+      }
+
+      function closeAutoLabelDialog() {
+        if (state.autoLabelBusy) return;
+        elements.autoLabelDialog.classList.remove("visible");
+        state.autoLabelSuggestions = [];
+        state.autoLabelSelectedKeys = new Set();
+        elements.autoLabelResults.replaceChildren();
+      }
+
+      function renderAutoLabelPreview() {
+        const suggestions = state.autoLabelSuggestions;
+        const tagged = suggestions.filter((item) => item.label);
+        const skipped = suggestions.length - tagged.length;
+        elements.autoLabelSummary.textContent =
+          `${suggestions.length} unlabeled uploaded file${suggestions.length === 1 ? "" : "s"} reviewed · ${tagged.length} suggested · ${skipped} skipped.`;
+        elements.autoLabelResults.replaceChildren();
+        const fragment = document.createDocumentFragment();
+
+        for (const suggestion of suggestions) {
+          const row = document.createElement("label");
+          row.className = "auto-label-row";
+          if (suggestion.label) {
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.checked = state.autoLabelSelectedKeys.has(suggestion.key);
+            checkbox.addEventListener("change", () => {
+              if (checkbox.checked) state.autoLabelSelectedKeys.add(suggestion.key);
+              else state.autoLabelSelectedKeys.delete(suggestion.key);
+              updateAutoLabelApplyButton();
+            });
+            row.append(checkbox);
+          }
+          const content = document.createElement("div");
+          content.className = "auto-label-row-content";
+          const name = document.createElement("div");
+          name.className = "auto-label-row-name";
+          name.textContent = suggestion.name;
+          const meta = document.createElement("div");
+          meta.className = "auto-label-row-meta";
+          meta.textContent = suggestion.label
+            ? `${suggestion.label} · ${suggestion.reason}`
+            : `Skipped · ${suggestion.reason}`;
+          content.append(name, meta);
+          row.append(content);
+          fragment.append(row);
+        }
+        elements.autoLabelResults.append(fragment);
+        updateAutoLabelApplyButton();
+      }
+
+      async function requestAutoLabelBatch(action, values) {
+        const response = await fetch("/api/auto-labeling", {
+          method: "POST",
+          headers: { Accept: "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action,
+            password: state.adminPassword,
+            ...(action === "preview" ? { keys: values } : { proposals: values }),
+          }),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          if (response.status === 401) exitAdmin();
+          throw new Error(payload.error || "Auto Labeling failed.");
+        }
+        return payload;
+      }
+
+      async function openAutoLabelPreview() {
+        if (!state.isAdmin || state.autoLabelBusy || state.aiSettingsLoading || state.aiSettingsSaving) return;
+        const candidates = state.files.filter((file) =>
+          !file.external && file.source === "r2" &&
+          (!Array.isArray(file.labels) || file.labels.length === 0),
+        );
+        state.autoLabelSuggestions = [];
+        state.autoLabelSelectedKeys = new Set();
+        elements.autoLabelDialog.classList.add("visible");
+        elements.autoLabelResults.replaceChildren();
+        elements.autoLabelSummary.textContent =
+          `${candidates.length} unlabeled uploaded file${candidates.length === 1 ? "" : "s"} found.`;
+        if (!candidates.length) {
+          elements.autoLabelStatus.textContent = "Nothing to label.";
+          updateAutoLabelApplyButton();
+          return;
+        }
+
+        state.autoLabelBusy = true;
+        updateAutoLabelApplyButton();
+        try {
+          for (let index = 0; index < candidates.length; index += 20) {
+            elements.autoLabelStatus.textContent =
+              `Analyzing ${Math.min(index + 20, candidates.length)} of ${candidates.length}…`;
+            const batch = candidates.slice(index, index + 20).map((file) => file.key);
+            const result = await requestAutoLabelBatch("preview", batch);
+            state.autoLabelSuggestions.push(...(Array.isArray(result.suggestions) ? result.suggestions : []));
+          }
+          state.autoLabelSelectedKeys = new Set(
+            state.autoLabelSuggestions.filter((item) => item.label).map((item) => item.key),
+          );
+          elements.autoLabelStatus.textContent = "Review the suggestions before applying.";
+          renderAutoLabelPreview();
+        } catch (error) {
+          state.autoLabelSuggestions = [];
+          state.autoLabelSelectedKeys = new Set();
+          elements.autoLabelResults.replaceChildren();
+          elements.autoLabelStatus.textContent = error instanceof Error
+            ? error.message
+            : "Could not create a complete preview.";
+        } finally {
+          state.autoLabelBusy = false;
+          updateAutoLabelApplyButton();
+        }
+      }
+
+      async function applyAutoLabelPreview() {
+        if (!state.isAdmin || state.autoLabelBusy || !state.autoLabelSelectedKeys.size) return;
+        const proposals = state.autoLabelSuggestions
+          .filter((item) => item.label && state.autoLabelSelectedKeys.has(item.key))
+          .map((item) => ({ key: item.key, label: item.label }));
+        state.autoLabelBusy = true;
+        updateAutoLabelApplyButton();
+        let applied = 0;
+        let skipped = 0;
+        try {
+          for (let index = 0; index < proposals.length; index += 100) {
+            elements.autoLabelStatus.textContent =
+              `Applying ${Math.min(index + 100, proposals.length)} of ${proposals.length}…`;
+            const result = await requestAutoLabelBatch("apply", proposals.slice(index, index + 100));
+            applied += Array.isArray(result.applied) ? result.applied.length : 0;
+            skipped += Array.isArray(result.skipped) ? result.skipped.length : 0;
+          }
+          elements.autoLabelStatus.textContent =
+            `Applied ${applied} label${applied === 1 ? "" : "s"}; ${skipped} skipped after recheck.`;
+          state.autoLabelSelectedKeys = new Set();
+          showToast("Auto Labeling complete");
+        } catch (error) {
+          elements.autoLabelStatus.textContent =
+            `${applied} applied before interruption. ${error instanceof Error ? error.message : "Apply failed."}`;
+          state.autoLabelSelectedKeys = new Set();
+        } finally {
+          state.autoLabelBusy = false;
+          updateAutoLabelApplyButton();
+          await loadFiles();
+        }
+      }
+
+      function closeAiSettingsDialog(force = false) {
+        if (!force && (state.aiSettingsLoading || state.aiSettingsSaving)) {
+          return;
+        }
+
+        state.aiSettingsLoading = false;
+        state.aiSettingsSaving = false;
+        elements.aiSettingsDialog.classList.remove("visible");
+        setAiSettingsStatus("");
+        updateAiSettingsUi();
+      }
+
+      async function openAiSettingsDialog() {
+        if (!state.isAdmin || state.aiSettingsLoading) {
+          return;
+        }
+
+        elements.aiSettingsDialog.classList.add("visible");
+        setAiSettingsStatus("Checking API key…");
+        state.aiSettingsLoading = true;
+        updateAiSettingsUi();
+
+        try {
+          const response = await fetch("/api/ai-settings", {
+            headers: {
+              Accept: "application/json",
+              "X-Admin-Password": state.adminPassword,
+            },
+            cache: "no-store",
+          });
+          const payload = await response.json();
+
+          if (!response.ok) {
+            if (response.status === 401) {
+              exitAdmin();
+            }
+            throw new Error(payload.error || "Could not load AI settings.");
+          }
+
+          elements.aiBaseUrlInput.value = payload.baseUrl || "";
+          elements.aiModelInput.value = payload.model || "";
+          elements.aiEnabledInput.checked = payload.enabled === true;
+          elements.aiHumanVerificationInput.checked =
+            payload.requireHumanVerification !== false;
+          state.aiInfrastructure = payload.infrastructure || {};
+          setAiSettingsStatus(
+            payload.apiKeyConfigured
+              ? "API key is configured"
+              : "API key is not configured",
+            payload.apiKeyConfigured ? "configured" : "error",
+          );
+        } catch (error) {
+          if (state.isAdmin) {
+            setAiSettingsStatus(
+              error instanceof Error
+                ? error.message
+                : "Could not load AI settings.",
+              "error",
+            );
+          }
+        } finally {
+          state.aiSettingsLoading = false;
+          updateAiSettingsUi();
+        }
+      }
+
+      async function saveAiSettings() {
+        if (!state.isAdmin || state.aiSettingsSaving) {
+          return;
+        }
+
+        const baseUrl = elements.aiBaseUrlInput.value.trim();
+        const model = elements.aiModelInput.value.trim();
+
+        if (!baseUrl || !model) {
+          setAiSettingsStatus(
+            "Base URL and model name are required.",
+            "error",
+          );
+          return;
+        }
+
+        state.aiSettingsSaving = true;
+        setAiSettingsStatus("Saving settings…");
+        updateAiSettingsUi();
+
+        try {
+          const response = await fetch("/api/ai-settings", {
+            method: "PUT",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              baseUrl,
+              model,
+              enabled: elements.aiEnabledInput.checked,
+              requireHumanVerification:
+                elements.aiHumanVerificationInput.checked,
+              password: state.adminPassword,
+            }),
+          });
+          const payload = await response.json();
+
+          if (!response.ok) {
+            if (response.status === 401) {
+              exitAdmin();
+            }
+            throw new Error(payload.error || "Could not save AI settings.");
+          }
+
+          elements.aiBaseUrlInput.value = payload.baseUrl;
+          elements.aiModelInput.value = payload.model;
+          elements.aiEnabledInput.checked = payload.enabled === true;
+          elements.aiHumanVerificationInput.checked =
+            payload.requireHumanVerification !== false;
+          state.aiInfrastructure = payload.infrastructure || {};
+          setAiSettingsStatus(
+            payload.apiKeyConfigured
+              ? "API key is configured"
+              : "API key is not configured",
+            payload.apiKeyConfigured ? "configured" : "error",
+          );
+          showToast("AI settings saved");
+          await loadAiConfig();
+        } catch (error) {
+          if (state.isAdmin) {
+            setAiSettingsStatus(
+              error instanceof Error
+                ? error.message
+                : "Could not save AI settings.",
+              "error",
+            );
+          }
+        } finally {
+          state.aiSettingsSaving = false;
+          updateAiSettingsUi();
+        }
+      }
+
       async function copyText(text, successMessage) {
         try {
           await navigator.clipboard.writeText(text);
@@ -1498,6 +4458,75 @@
         }
       }
 
+      function recordFileActivity(eventType, file) {
+        try {
+          void fetch("/api/logs", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              eventType,
+              fileKey: file.key,
+              fileName: file.name,
+              fileSource: fileIsOfficialLink(file) ? "official" : "uploaded",
+            }),
+            keepalive: true,
+          }).catch(() => {});
+        } catch {
+          // Activity logging must never interrupt the user's action.
+        }
+      }
+
+      async function downloadActivityLogs() {
+        if (!state.isAdmin || state.logsDownloading) return;
+        state.logsDownloading = true;
+        elements.logsButton.disabled = true;
+        elements.logsButtonLabel.textContent = "Preparing…";
+
+        try {
+          const response = await fetch("/api/logs-export", {
+            method: "POST",
+            headers: {
+              Accept: "text/csv",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ password: state.adminPassword }),
+          });
+          if (!response.ok) {
+            let message = "Could not download activity logs.";
+            try {
+              const payload = await response.json();
+              message = payload.error || message;
+            } catch {}
+            if (response.status === 401) exitAdmin();
+            throw new Error(message);
+          }
+
+          const blob = await response.blob();
+          const disposition = response.headers.get("Content-Disposition") || "";
+          const filename = disposition.match(/filename="([^"]+)"/)?.[1]
+            || `urovo-activity-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+          const url = URL.createObjectURL(blob);
+          const anchor = document.createElement("a");
+          anchor.href = url;
+          anchor.download = filename;
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
+          URL.revokeObjectURL(url);
+          showToast("Activity logs downloaded");
+        } catch (error) {
+          showToast(
+            error instanceof Error
+              ? error.message
+              : "Could not download activity logs.",
+          );
+        } finally {
+          state.logsDownloading = false;
+          elements.logsButton.disabled = false;
+          elements.logsButtonLabel.textContent = "Logs";
+        }
+      }
+
       function getUploadedTime(file) {
         if (!file.uploaded) {
           return 0;
@@ -1511,25 +4540,16 @@
         const sorted = [...files];
 
         sorted.sort((a, b) => {
-          switch (state.sortBy) {
-            case "time-asc": {
-              const diff = getUploadedTime(a) - getUploadedTime(b);
-              return diff !== 0 ? diff : a.name.localeCompare(b.name);
-            }
-            case "name-asc":
-              return a.name.localeCompare(b.name, undefined, {
-                sensitivity: "base",
-              });
-            case "name-desc":
-              return b.name.localeCompare(a.name, undefined, {
-                sensitivity: "base",
-              });
-            case "time-desc":
-            default: {
-              const diff = getUploadedTime(b) - getUploadedTime(a);
-              return diff !== 0 ? diff : a.name.localeCompare(b.name);
-            }
+          const descriptionDiff =
+            Number(Boolean(a.hasDescription)) -
+            Number(Boolean(b.hasDescription));
+
+          if (descriptionDiff !== 0) {
+            return descriptionDiff;
           }
+
+          const diff = getUploadedTime(b) - getUploadedTime(a);
+          return diff !== 0 ? diff : a.name.localeCompare(b.name);
         });
 
         return sorted;
@@ -1557,11 +4577,330 @@
             <div class="loading-ring"></div>
             <h2 class="state-title">Loading files</h2>
             <p class="state-message">
-              Reading the latest file list from Cloudflare R2.
+              Reading the latest unified file index.
             </p>
           </div>
         </div>
       `;
+      }
+
+      async function loadAiConfig() {
+        state.aiConfigLoading = true;
+
+        try {
+          const response = await fetch("/api/ai-config", {
+            headers: { Accept: "application/json" },
+            cache: "no-store",
+          });
+          const payload = await response.json();
+          state.aiConfig = {
+            enabled: payload.enabled === true,
+            ready: payload.ready === true,
+            requireHumanVerification:
+              payload.requireHumanVerification !== false,
+            turnstileSiteKey:
+              typeof payload.turnstileSiteKey === "string"
+                ? payload.turnstileSiteKey
+                : "",
+          };
+        } catch {
+          state.aiConfig = {
+            enabled: false,
+            ready: false,
+            requireHumanVerification: true,
+            turnstileSiteKey: "",
+          };
+        } finally {
+          state.aiConfigLoading = false;
+          if (!state.loading && elements.searchInput.value.trim() === "") {
+            renderFiles();
+          }
+        }
+      }
+
+      function cleanupAiTurnstile() {
+        state.aiRenderNonce += 1;
+        if (
+          state.aiTurnstileWidgetId !== null &&
+          window.turnstile?.remove
+        ) {
+          try {
+            window.turnstile.remove(state.aiTurnstileWidgetId);
+          } catch {
+            // The containing composer may already have been replaced.
+          }
+        }
+        state.aiTurnstileWidgetId = null;
+      }
+
+      function updateAiSubmitButton() {
+        const prompt = document.getElementById("aiPromptInput");
+        const button = document.getElementById("aiSubmitButton");
+        if (!prompt || !button) return;
+        button.disabled =
+          !prompt.value.trim() ||
+          prompt.value.trim().length > 500;
+      }
+
+      function closeAiVerificationDialog() {
+        cleanupAiTurnstile();
+        state.aiPendingPrompt = "";
+        elements.aiVerificationStatus.textContent = "";
+        elements.aiVerificationTurnstile.replaceChildren();
+        elements.aiVerificationDialog.classList.remove("visible");
+      }
+
+      function openAiVerificationDialog(prompt) {
+        cleanupAiTurnstile();
+        state.aiPendingPrompt = prompt;
+        elements.aiVerificationStatus.textContent = "Waiting for verification…";
+        elements.aiVerificationTurnstile.replaceChildren();
+        elements.aiVerificationDialog.classList.add("visible");
+        renderAiTurnstile(elements.aiVerificationTurnstile);
+      }
+
+      function completeAiVerification(token) {
+        const prompt = state.aiPendingPrompt;
+        if (!prompt || !token) return;
+        closeAiVerificationDialog();
+        runAiSearch(prompt, token);
+      }
+
+      function renderAiTurnstile(container) {
+        const nonce = state.aiRenderNonce;
+        let attempts = 0;
+
+        const attempt = () => {
+          if (nonce !== state.aiRenderNonce || !container.isConnected) return;
+          if (!window.turnstile?.render) {
+            attempts += 1;
+            if (attempts < 60) window.setTimeout(attempt, 250);
+            return;
+          }
+
+          state.aiTurnstileWidgetId = window.turnstile.render(container, {
+            sitekey: state.aiConfig.turnstileSiteKey,
+            action: "ai_search",
+            theme: "dark",
+            callback(token) {
+              elements.aiVerificationStatus.textContent = "Verified. Starting search…";
+              completeAiVerification(token);
+            },
+            "expired-callback"() {
+              elements.aiVerificationStatus.textContent = "Verification expired. Please try again.";
+            },
+            "error-callback"() {
+              elements.aiVerificationStatus.textContent =
+                "Verification could not load. Please close this window and try again.";
+            },
+          });
+        };
+
+        attempt();
+      }
+
+      function renderAiComposer() {
+        closeAiVerificationDialog();
+        elements.summaryPath.textContent = "AI-assisted product search";
+        elements.summaryCount.textContent = `${state.files.length} indexed`;
+        elements.pagination.classList.add("hidden");
+
+        if (state.aiConfigLoading) {
+          renderState(
+            icons.info,
+            "Preparing AI search",
+            "Checking the secure AI configuration.",
+          );
+          return;
+        }
+
+        if (!state.aiConfig.enabled) {
+          renderState(
+            icons.info,
+            "AI search is not enabled",
+            state.aiConfig.ready
+              ? "An administrator can enable it from AI Setup."
+              : "The required AI configuration, D1, or Secrets are incomplete.",
+          );
+          return;
+        }
+
+        elements.fileList.innerHTML = `
+          <div class="ai-panel">
+            <div class="ai-composer-shell">
+              <span class="ai-kicker">AI Assistant</span>
+              <div class="ai-composer-intro">
+                <p class="ai-copy">Ask for a Urovo specification, brochure, manual, firmware, SDK, or another product document.</p>
+                <button id="aiSubmitButton" class="ai-submit" type="submit" form="aiSearchForm" disabled>Ask AI</button>
+              </div>
+              <form id="aiSearchForm" class="ai-composer">
+                <textarea id="aiPromptInput" class="ai-prompt" maxlength="500" placeholder="For example: I need the K388Pro specification sheet" aria-label="Ask the Urovo library agent"></textarea>
+              </form>
+              <div id="aiComposerError" class="ai-error" role="status"></div>
+            </div>
+          </div>`;
+
+        const form = document.getElementById("aiSearchForm");
+        const prompt = document.getElementById("aiPromptInput");
+        const error = document.getElementById("aiComposerError");
+        prompt.value = state.aiPrompt;
+        error.textContent = state.aiError;
+        prompt.addEventListener("input", () => {
+          state.aiPrompt = prompt.value;
+          state.aiError = "";
+          error.textContent = "";
+          updateAiSubmitButton();
+        });
+        prompt.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+            event.preventDefault();
+            form.requestSubmit();
+          }
+        });
+        form.addEventListener("submit", submitAiSearch);
+        updateAiSubmitButton();
+      }
+
+      function renderAiRunning() {
+        cleanupAiTurnstile();
+        elements.summaryPath.textContent = "AI-assisted product search";
+        elements.summaryCount.textContent = "Searching…";
+        elements.pagination.classList.add("hidden");
+        elements.fileList.innerHTML = `
+          <div class="ai-panel ai-running">
+            <div>
+              <div class="loading-ring"></div>
+              <h2 class="state-title">Searching the product library</h2>
+              <p class="state-message">The agent is comparing your request with the current index.</p>
+            </div>
+          </div>`;
+      }
+
+      function askAnotherAiQuestion() {
+        state.aiView = "composer";
+        state.aiPrompt = "";
+        state.aiError = "";
+        state.aiResult = null;
+        renderFiles();
+      }
+
+      function renderAiResult() {
+        cleanupAiTurnstile();
+        const result = state.aiResult;
+        elements.summaryPath.textContent = "AI-assisted product search";
+        elements.pagination.classList.add("hidden");
+        elements.summaryCount.textContent = result?.matches?.length
+          ? `${result.matches.length} matched`
+          : "Complete";
+
+        if (!result?.matches?.length) {
+          const panel = document.createElement("div");
+          panel.className = "ai-panel ai-running";
+          const content = document.createElement("div");
+          const icon = document.createElement("div");
+          icon.className = "state-icon";
+          icon.innerHTML = result?.outcome === "unrelated" ? icons.error : icons.info;
+          const title = document.createElement("h2");
+          title.className = "state-title";
+          title.textContent = result?.outcome === "needs_clarification"
+            ? "More detail needed"
+            : result?.outcome === "unrelated"
+              ? "Product questions only"
+              : "No matching files";
+          const message = document.createElement("p");
+          message.className = "state-message";
+          message.textContent = result?.message || "No matching files were found.";
+          const again = document.createElement("button");
+          again.className = "ai-again";
+          again.type = "button";
+          again.style.marginTop = "18px";
+          again.textContent = "Ask another question";
+          again.addEventListener("click", askAnotherAiQuestion);
+          content.append(icon, title, message, again);
+          panel.append(content);
+          elements.fileList.replaceChildren(panel);
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        const header = document.createElement("div");
+        header.className = "ai-result-header";
+        const heading = document.createElement("div");
+        heading.className = "ai-result-heading";
+        const title = document.createElement("h2");
+        title.className = "ai-result-title";
+        title.textContent = "Best matches";
+        const message = document.createElement("p");
+        message.className = "ai-result-message";
+        message.textContent = result.message;
+        const again = document.createElement("button");
+        again.className = "ai-again";
+        again.type = "button";
+        again.textContent = "Ask another question";
+        again.addEventListener("click", askAnotherAiQuestion);
+        heading.append(title, message);
+        header.append(heading, again);
+        fragment.append(header);
+        for (const file of result.matches) fragment.append(createFileRow(file));
+        elements.fileList.replaceChildren(fragment);
+      }
+
+      async function submitAiSearch(event) {
+        event.preventDefault();
+        const prompt = document.getElementById("aiPromptInput")?.value.trim() || "";
+        if (!prompt || prompt.length > 500) {
+          state.aiError = "Enter a question of no more than 500 characters.";
+          const error = document.getElementById("aiComposerError");
+          if (error) error.textContent = state.aiError;
+          return;
+        }
+
+        state.aiPrompt = prompt;
+        state.aiError = "";
+        if (state.aiConfig.requireHumanVerification) {
+          openAiVerificationDialog(prompt);
+        } else {
+          runAiSearch(prompt, "");
+        }
+      }
+
+      async function runAiSearch(prompt, turnstileToken) {
+        const requestRole = state.uploaderToken;
+        state.aiPrompt = prompt;
+        state.aiError = "";
+        state.aiView = "running";
+        renderFiles();
+
+        try {
+          const response = await fetch("/api/ai-search", {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              ...uploaderHeaders(),
+            },
+            body: JSON.stringify({ prompt, turnstileToken }),
+          });
+          const payload = await response.json();
+          if (!response.ok) {
+            throw new Error(payload.error || "AI search failed.");
+          }
+          if (requestRole !== state.uploaderToken) return;
+          state.aiResult = payload;
+          state.aiView = "result";
+        } catch (error) {
+          state.aiView = "composer";
+          state.aiError = error instanceof Error
+            ? error.message
+            : "AI search failed. Please try again.";
+        }
+        renderFiles();
+      }
+
+      function renderAiHome() {
+        if (state.aiView === "running") renderAiRunning();
+        else if (state.aiView === "result") renderAiResult();
+        else renderAiComposer();
       }
 
       function renderState(icon, title, message) {
@@ -1582,6 +4921,23 @@
         }
 
         return Boolean(file.hasDescription);
+      }
+
+      function fileIsOfficialLink(file) {
+        return Boolean(file.external) || file.source === "urovo-en";
+      }
+
+      function uploaderHeaders() {
+        return state.uploaderToken ? { "X-Uploader-Token": state.uploaderToken } : {};
+      }
+
+      function canManageFile(file) {
+        if (!file) return false;
+        return file.source === "uploader" ? Boolean(state.uploaderToken) : state.isAdmin;
+      }
+
+      function descriptionEndpoint(file) {
+        return `${file.source === "uploader" ? "/api/uploader-item" : "/api/description"}?key=${encodeURIComponent(file.key)}`;
       }
 
       function createFileRow(file) {
@@ -1617,13 +4973,50 @@
         link.href = file.url;
         link.textContent = file.name;
         link.title = file.name;
+        link.addEventListener("click", () => {
+          recordFileActivity("download", file);
+        });
+
+        const sourceBadge = document.createElement("span");
+        const isOfficial = fileIsOfficialLink(file);
+        sourceBadge.className = `source-badge ${isOfficial ? "official" : "uploaded"}`;
+        sourceBadge.textContent = isOfficial ? "OFFICIAL LINK" : "UPLOADED";
+        if (file.source === "uploader") {
+          sourceBadge.textContent = "UPLOADER FILE";
+          sourceBadge.style.color = "#f6c879";
+          sourceBadge.style.background = "rgba(246,200,121,.1)";
+        }
+        sourceBadge.title = isOfficial
+          ? "Public link synchronized from the Urovo product library"
+          : "File uploaded to this library";
+
+        const titleLine = document.createElement("div");
+        titleLine.className = "file-title-line";
+        titleLine.append(link, sourceBadge);
 
         const key = document.createElement("div");
         key.className = "file-key";
-        key.textContent = file.key;
-        key.title = file.key;
+        key.textContent = file.displayPath || file.key;
+        key.title = file.displayPath || file.key;
 
-        details.append(link, key);
+        details.append(titleLine, key);
+        if (Array.isArray(file.labels) && file.labels.length > 0) {
+          const labels = document.createElement("div");
+          labels.className = "file-labels";
+          for (const value of file.labels) {
+            const label = document.createElement("span");
+            label.className = "file-label";
+            label.textContent = value;
+            labels.appendChild(label);
+          }
+          details.appendChild(labels);
+        }
+        if (file.comment) {
+          const comment = document.createElement("div");
+          comment.className = "ai-match-reason";
+          comment.textContent = file.comment;
+          details.append(comment);
+        }
         main.append(iconButton, details);
 
         const size = document.createElement("div");
@@ -1644,6 +5037,7 @@
 
         copyButton.addEventListener("click", async () => {
           await copyText(file.url, "Download link copied");
+          recordFileActivity("copy", file);
 
           copyButton.classList.add("copied");
           copyButton.innerHTML = `${icons.check}<span>Copied</span>`;
@@ -1664,7 +5058,11 @@
           openDeleteDialog(file);
         });
 
-        actions.append(copyButton, deleteButton);
+        actions.append(copyButton);
+
+        if (canManageFile(file) && !file.external) {
+          actions.append(deleteButton);
+        }
         row.append(main, size, date, actions);
 
         return row;
@@ -1690,24 +5088,92 @@
 
       function renderFiles() {
         const terms = parseSearchTerms(elements.searchInput.value.trim());
+        const labelFilters = state.selectedLabelFilters;
+        const uploaderMode = Boolean(state.uploaderToken) && !state.isAdmin;
+
+        if (
+          !uploaderMode &&
+          terms.length === 0 &&
+          labelFilters.length === 0 &&
+          state.sourceFilter === "all"
+        ) {
+          state.filteredFiles = [];
+          state.displayedFiles = [];
+          renderAiHome();
+          return;
+        }
+
+        cleanupAiTurnstile();
+        elements.summaryPath.textContent = uploaderMode
+          ? terms.length === 0
+            ? "Uploader files"
+            : "All matching files · Uploader files first"
+          : "R2 + Urovo Product Library";
+
+        if (state.files.length === 0) {
+          state.filteredFiles = [];
+          state.displayedFiles = [];
+          elements.summaryCount.textContent = "0 files";
+          elements.pagination.classList.add("hidden");
+          renderState(
+            icons.empty,
+            "No files found",
+            "There are currently no files in the unified library.",
+          );
+          return;
+        }
 
         const filtered = state.files.filter((file) => {
-          if (terms.length === 0) {
-            return true;
+          if (uploaderMode && terms.length === 0 && file.source !== "uploader") {
+            return false;
           }
 
-          const fields = [file.name, file.key].map((value) =>
-            String(value || "").toLowerCase(),
-          );
+          const fuzzyFields = [
+            file.name,
+            file.key,
+            file.displayPath,
+          ].map((value) => String(value || "").toLowerCase());
+          const metadataFields = [
+            file.description,
+            file.product,
+            file.category,
+            file.documentType,
+            file.language,
+            ...(Array.isArray(file.labels) ? file.labels : []),
+          ].map((value) => String(value || "").toLowerCase());
           const matchesTerm = (term) =>
-            fields.some((field) => matchesQuery(field, term));
+            fuzzyFields.some((field) => matchesQuery(field, term)) ||
+            metadataFields.some((field) => field.includes(term));
 
-          return state.searchMode === "and"
-            ? terms.every(matchesTerm)
-            : terms.some(matchesTerm);
+          const textMatches = terms.length === 0 || (
+            state.searchMode === "and"
+              ? terms.every(matchesTerm)
+              : terms.some(matchesTerm)
+          );
+          const fileLabels = new Set(
+            (Array.isArray(file.labels) ? file.labels : []).map(
+              (label) => label.toLocaleLowerCase(),
+            ),
+          );
+          const labelsMatch = labelFilters.every((label) =>
+            fileLabels.has(label.toLocaleLowerCase()),
+          );
+          const isOfficial = fileIsOfficialLink(file);
+          const sourceMatches =
+            state.sourceFilter === "all" ||
+            (state.sourceFilter === "official" && isOfficial) ||
+            (state.sourceFilter === "uploaded" && !isOfficial);
+
+          return textMatches && labelsMatch && sourceMatches;
         });
 
-        state.filteredFiles = sortFiles(filtered);
+        const sorted = sortFiles(filtered);
+        state.filteredFiles = uploaderMode && terms.length > 0
+          ? [
+              ...sorted.filter((file) => file.source === "uploader"),
+              ...sorted.filter((file) => file.source !== "uploader"),
+            ]
+          : sorted;
 
         const totalPages = getTotalPages(state.filteredFiles.length);
         clampCurrentPage(totalPages);
@@ -1721,16 +5187,6 @@
         elements.summaryCount.textContent =
           `${state.filteredFiles.length} file` +
           (state.filteredFiles.length === 1 ? "" : "s");
-
-        if (state.files.length === 0) {
-          elements.pagination.classList.add("hidden");
-          renderState(
-            icons.empty,
-            "No files found",
-            "There are currently no files under the configured R2 prefix.",
-          );
-          return;
-        }
 
         if (state.filteredFiles.length === 0) {
           elements.pagination.classList.add("hidden");
@@ -1755,19 +5211,38 @@
       function updateDescriptionDialogUi() {
         const isBusy =
           state.descriptionLoading || state.descriptionSaving;
+        const isExternal = Boolean(state.activeDescriptionFile?.external);
+        const isReadOnly = !canManageFile(state.activeDescriptionFile);
 
         elements.dialogTextarea.disabled = isBusy;
+        elements.dialogTextarea.readOnly = isReadOnly;
         elements.dialogCopyButton.disabled =
           isBusy || elements.dialogTextarea.value.length === 0;
         elements.dialogSaveButton.disabled = isBusy;
+        elements.dialogSaveButton.classList.toggle("is-hidden", isReadOnly);
         elements.dialogSaveButton.textContent = state.descriptionSaving
           ? "Saving…"
           : "Save";
+        elements.dialogLabelSaveButton.disabled =
+          isBusy || state.itemLabelsSaving || state.availableLabels.length === 0;
+        elements.dialogLabelSaveButton.textContent = state.itemLabelsSaving
+          ? "Saving…"
+          : "Save labels";
+        for (const input of elements.dialogLabelOptions.querySelectorAll("input")) {
+          input.disabled = isBusy || state.itemLabelsSaving;
+        }
 
         if (state.descriptionLoading) {
           elements.dialogStatus.textContent = "Loading description…";
         } else if (state.descriptionSaving) {
           elements.dialogStatus.textContent = "Saving description…";
+        } else if (isExternal && state.isAdmin) {
+          elements.dialogStatus.textContent = state.activeDescriptionFile
+            ?.descriptionOverridden
+            ? `${elements.dialogTextarea.value.length} / 1500 · Admin override`
+            : `${elements.dialogTextarea.value.length} / 1500 · Synchronized fallback`;
+        } else if (isReadOnly) {
+          elements.dialogStatus.textContent = "Admin access required to edit";
         } else {
           elements.dialogStatus.textContent = `${elements.dialogTextarea.value.length} / 1500`;
         }
@@ -1777,25 +5252,42 @@
         state.activeDescriptionFile = null;
         state.descriptionLoading = false;
         state.descriptionSaving = false;
+        state.itemLabelsSaving = false;
+        state.activeItemLabelDraft = [];
         elements.descriptionDialog.classList.remove("visible");
         elements.dialogTextarea.value = "";
+        elements.dialogTextarea.readOnly = false;
+        elements.dialogSaveButton.classList.remove("is-hidden");
         elements.dialogFileName.textContent = "";
         elements.dialogCopyButton.classList.remove("copied");
         elements.dialogCopyButton.innerHTML = "Copy";
+        elements.dialogLabelStatus.textContent = "";
+        elements.dialogLabelOptions.replaceChildren();
         updateDescriptionDialogUi();
       }
 
       async function openDescriptionDialog(file) {
         state.activeDescriptionFile = file;
+        state.activeItemLabelDraft = Array.isArray(file.labels)
+          ? [...file.labels]
+          : [];
+        elements.dialogLabelStatus.textContent = "";
         elements.dialogFileName.textContent = file.name;
         elements.dialogTextarea.value = "";
+        elements.dialogTextarea.placeholder = file.external
+          ? "No synchronized description is available."
+          : "No description yet. Add notes about this file…";
         elements.descriptionDialog.classList.add("visible");
+        renderItemLabelEditor();
         updateDescriptionDialogUi();
 
         if (Object.hasOwn(state.descriptionCache, file.key)) {
           elements.dialogTextarea.value = state.descriptionCache[file.key];
           updateDescriptionDialogUi();
-          elements.dialogTextarea.focus();
+
+          if (state.isAdmin) {
+            elements.dialogTextarea.focus();
+          }
           return;
         }
 
@@ -1804,10 +5296,11 @@
 
         try {
           const response = await fetch(
-            `/api/description?key=${encodeURIComponent(file.key)}`,
+            descriptionEndpoint(file),
             {
               headers: {
                 Accept: "application/json",
+                ...uploaderHeaders(),
               },
               cache: "no-store",
             },
@@ -1829,7 +5322,9 @@
           if (state.activeDescriptionFile?.key === file.key) {
             elements.dialogTextarea.value = description;
             updateDescriptionDialogUi();
-            elements.dialogTextarea.focus();
+            if (state.isAdmin) {
+              elements.dialogTextarea.focus();
+            }
           }
         } catch (error) {
           console.error(error);
@@ -1852,7 +5347,11 @@
       async function saveDescription() {
         const file = state.activeDescriptionFile;
 
-        if (!file || state.descriptionSaving) {
+        if (
+          !file ||
+          !canManageFile(file) ||
+          state.descriptionSaving
+        ) {
           return;
         }
 
@@ -1862,20 +5361,27 @@
 
         try {
           const response = await fetch(
-            `/api/description?key=${encodeURIComponent(file.key)}`,
+            descriptionEndpoint(file),
             {
               method: "PUT",
               headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
+                ...uploaderHeaders(),
               },
-              body: JSON.stringify({ description }),
+              body: JSON.stringify({
+                description,
+                password: state.adminPassword,
+              }),
             },
           );
 
           const payload = await response.json();
 
           if (!response.ok) {
+            if (response.status === 401) {
+              exitAdmin();
+            }
             throw new Error(
               payload.detail || payload.error || "Request failed",
             );
@@ -1885,7 +5391,12 @@
             typeof payload.description === "string" ? payload.description : "";
 
           state.descriptionCache[file.key] = savedDescription;
+          file.description = savedDescription;
           file.hasDescription = savedDescription.length > 0;
+          file.descriptionOverridden = Boolean(payload.overridden);
+          for (const item of state.files) {
+            if (item.key === file.key) { item.description = savedDescription; item.hasDescription = Boolean(savedDescription); }
+          }
           elements.dialogTextarea.value = savedDescription;
           showToast("Description saved");
           renderFiles();
@@ -1908,22 +5419,28 @@
         }
 
         state.loading = true;
-        elements.refreshButton.classList.add("loading");
-        elements.refreshButton.disabled = true;
+        const requestRole = state.uploaderToken;
         elements.summaryPath.textContent = "Loading R2 files…";
         elements.summaryCount.textContent = "";
 
         renderLoading();
 
         try {
-          const response = await fetch("/api/files", {
-            headers: {
-              Accept: "application/json",
-            },
-            cache: "no-store",
-          });
+          const [response, labelsResponse] = await Promise.all([
+            fetch("/api/files", {
+              headers: { Accept: "application/json", ...uploaderHeaders() },
+              cache: "no-store",
+            }),
+            fetch("/api/labels", {
+              headers: { Accept: "application/json" },
+              cache: "no-store",
+            }),
+          ]);
 
-          const payload = await response.json();
+          const [payload, labelsPayload] = await Promise.all([
+            response.json(),
+            labelsResponse.json(),
+          ]);
 
           if (!response.ok) {
             throw new Error(
@@ -1931,10 +5448,27 @@
             );
           }
 
-          state.files = Array.isArray(payload.files) ? payload.files : [];
-          state.descriptionCache = {};
+          if (!labelsResponse.ok) {
+            throw new Error(labelsPayload.error || "Could not load labels.");
+          }
 
-          elements.summaryPath.textContent = `R2 / ${payload.prefix || "tools/"}`;
+          if (requestRole !== state.uploaderToken) {
+            state.loading = false;
+            await loadFiles();
+            return;
+          }
+          state.files = Array.isArray(payload.files) ? payload.files : [];
+          applyAvailableLabels(labelsPayload.labels);
+          state.descriptionCache = Object.fromEntries(
+            state.files
+              .filter((file) => typeof file.description === "string")
+              .map((file) => [file.key, file.description]),
+          );
+
+          elements.summaryPath.textContent = "R2 + Urovo Product Library";
+          elements.lastSyncText.textContent = payload.sync?.completedAt
+            ? `Last synced: ${formatDate(payload.sync.completedAt)}`
+            : "Last synced: —";
 
           renderFiles();
         } catch (error) {
@@ -1952,8 +5486,27 @@
           );
         } finally {
           state.loading = false;
-          elements.refreshButton.classList.remove("loading");
-          elements.refreshButton.disabled = false;
+        }
+      }
+
+      function applySearchFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const search = params.get("search")?.trim() || "";
+        const requestedMode = params.get("match")?.trim().toLowerCase();
+
+        if (search) {
+          elements.searchInput.value = search;
+          elements.clearButton.classList.add("visible");
+        }
+
+        if (requestedMode === "and" || requestedMode === "or") {
+          state.searchMode = requestedMode;
+        }
+
+        for (const button of elements.searchModeButtons) {
+          const isActive = button.dataset.searchMode === state.searchMode;
+          button.classList.toggle("active", isActive);
+          button.setAttribute("aria-pressed", String(isActive));
         }
       }
 
@@ -1961,70 +5514,68 @@
         state.activeDeleteFile = null;
         state.deleteSubmitting = false;
         elements.deleteDialog.classList.remove("visible");
-        elements.deletePasswordInput.value = "";
         elements.deleteDialogFileName.textContent = "";
         elements.deleteDialogStatus.textContent = "";
-        elements.deletePasswordInput.disabled = false;
         elements.deleteDialogConfirmButton.disabled = false;
         elements.deleteDialogConfirmButton.textContent = "Delete";
       }
 
       function openDeleteDialog(file) {
+        if (!canManageFile(file) || file.external) {
+          return;
+        }
+
         state.activeDeleteFile = file;
         state.deleteSubmitting = false;
         elements.deleteDialogFileName.textContent = file.name;
-        elements.deletePasswordInput.value = "";
+        document.getElementById("deleteDialogMessage").textContent = file.originType === "firmware"
+          ? "Remove this firmware link from this library? The source firmware remains available to the mobile app."
+          : "This permanently removes the file from R2.";
         elements.deleteDialogStatus.textContent = "";
-        elements.deletePasswordInput.disabled = false;
         elements.deleteDialogConfirmButton.disabled = false;
         elements.deleteDialogConfirmButton.textContent = "Delete";
         elements.deleteDialog.classList.add("visible");
-        elements.deletePasswordInput.focus();
       }
 
       async function confirmDelete() {
         const file = state.activeDeleteFile;
 
-        if (!file || state.deleteSubmitting) {
-          return;
-        }
-
-        const password = elements.deletePasswordInput.value;
-
-        if (!password) {
-          elements.deleteDialogStatus.textContent = "Password required.";
-          elements.deletePasswordInput.focus();
+        if (!file || !canManageFile(file) || state.deleteSubmitting) {
           return;
         }
 
         state.deleteSubmitting = true;
-        elements.deletePasswordInput.disabled = true;
         elements.deleteDialogConfirmButton.disabled = true;
         elements.deleteDialogConfirmButton.textContent = "Deleting…";
         elements.deleteDialogStatus.textContent = "";
 
         try {
           const response = await fetch(
-            `/api/delete?key=${encodeURIComponent(file.key)}`,
+            `${file.source === "uploader" ? "/api/uploader-item" : "/api/delete"}?key=${encodeURIComponent(file.key)}`,
             {
-              method: "POST",
+              method: file.source === "uploader" ? "DELETE" : "POST",
               headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
+                ...uploaderHeaders(),
               },
-              body: JSON.stringify({ password }),
+              body: JSON.stringify({ password: state.adminPassword }),
             },
           );
 
           const payload = await response.json();
 
           if (!response.ok) {
+            if (response.status === 401) {
+              exitAdmin();
+            }
             throw new Error(
               payload.detail || payload.error || "Request failed",
             );
           }
 
           state.files = state.files.filter((item) => item.key !== file.key);
+          if (state.aiResult?.matches) state.aiResult.matches = state.aiResult.matches.filter(item => item.key !== file.key);
           delete state.descriptionCache[file.key];
 
           if (state.activeDescriptionFile?.key === file.key) {
@@ -2032,7 +5583,7 @@
           }
 
           closeDeleteDialog();
-          showToast("File deleted");
+          showToast(file.originType === "firmware" ? "Firmware link removed" : "File deleted");
           renderFiles();
         } catch (error) {
           console.error(error);
@@ -2042,11 +5593,8 @@
 
           elements.deleteDialogStatus.textContent =
             message === "Unauthorized." ? "Wrong password." : message;
-          elements.deletePasswordInput.disabled = false;
           elements.deleteDialogConfirmButton.disabled = false;
           elements.deleteDialogConfirmButton.textContent = "Delete";
-          elements.deletePasswordInput.focus();
-          elements.deletePasswordInput.select();
         } finally {
           state.deleteSubmitting = false;
         }
@@ -2081,14 +5629,72 @@
           }
 
           resetToFirstPage();
-          renderFiles();
+          if (
+            elements.searchInput.value.trim() ||
+            state.selectedLabelFilters.length > 0 ||
+            state.sourceFilter !== "all"
+          ) {
+            renderFiles();
+          }
         });
       }
 
-      elements.sortSelect.addEventListener("change", () => {
-        state.sortBy = elements.sortSelect.value;
-        resetToFirstPage();
-        renderFiles();
+      elements.labelFilterButton.addEventListener("click", openLabelFilterDialog);
+      elements.labelFilterCloseButton.addEventListener("click", closeLabelFilterDialog);
+      elements.labelFilterCancelButton.addEventListener("click", closeLabelFilterDialog);
+      elements.labelFilterClearButton.addEventListener("click", clearLabelFilter);
+      elements.labelFilterConfirmButton.addEventListener("click", applyLabelFilter);
+      elements.labelFilterDialog.addEventListener("click", (event) => {
+        if (event.target === elements.labelFilterDialog) closeLabelFilterDialog();
+      });
+
+      elements.sourceFilterButton.addEventListener(
+        "click",
+        openSourceFilterDialog,
+      );
+      elements.sourceFilterCloseButton.addEventListener(
+        "click",
+        closeSourceFilterDialog,
+      );
+      elements.sourceFilterCancelButton.addEventListener(
+        "click",
+        closeSourceFilterDialog,
+      );
+      elements.sourceFilterConfirmButton.addEventListener(
+        "click",
+        applySourceFilter,
+      );
+      for (const input of elements.sourceFilterInputs) {
+        input.addEventListener("change", () => {
+          if (input.checked) state.sourceFilterDraft = input.value;
+        });
+      }
+      elements.sourceFilterDialog.addEventListener("click", (event) => {
+        if (event.target === elements.sourceFilterDialog) {
+          closeSourceFilterDialog();
+        }
+      });
+
+      elements.labelListButton.addEventListener("click", openLabelManagerDialog);
+      elements.logsButton.addEventListener("click", downloadActivityLogs);
+      elements.labelManagerCloseButton.addEventListener("click", () =>
+        closeLabelManagerDialog(),
+      );
+      elements.labelManagerCancelButton.addEventListener("click", () =>
+        closeLabelManagerDialog(),
+      );
+      elements.labelManagerAddButton.addEventListener("click", addLabelDraft);
+      elements.labelManagerSaveButton.addEventListener("click", saveLabelList);
+      elements.labelManagerInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          addLabelDraft();
+        }
+      });
+      elements.labelManagerDialog.addEventListener("click", (event) => {
+        if (event.target === elements.labelManagerDialog) {
+          closeLabelManagerDialog();
+        }
       });
 
       elements.prevPageButton.addEventListener("click", () => {
@@ -2111,12 +5717,6 @@
 
       elements.dialogCloseButton.addEventListener("click", closeDescriptionDialog);
 
-      elements.descriptionDialog.addEventListener("click", (event) => {
-        if (event.target === elements.descriptionDialog) {
-          closeDescriptionDialog();
-        }
-      });
-
       elements.dialogTextarea.addEventListener("input", updateDescriptionDialogUi);
 
       elements.dialogCopyButton.addEventListener("click", async () => {
@@ -2138,6 +5738,68 @@
       });
 
       elements.dialogSaveButton.addEventListener("click", saveDescription);
+      elements.dialogLabelSaveButton.addEventListener("click", saveItemLabels);
+
+      elements.aiVerificationCloseButton.addEventListener(
+        "click",
+        closeAiVerificationDialog,
+      );
+      elements.aiVerificationCancelButton.addEventListener(
+        "click",
+        closeAiVerificationDialog,
+      );
+      elements.aiVerificationDialog.addEventListener("click", (event) => {
+        if (event.target === elements.aiVerificationDialog) {
+          closeAiVerificationDialog();
+        }
+      });
+
+      elements.adminButton.addEventListener("click", openAdminDialog);
+      elements.syncButton.addEventListener("click", openSyncDialog);
+
+      elements.adminDialogCloseButton.addEventListener("click", closeAdminDialog);
+      elements.adminDialogCancelButton.addEventListener("click", closeAdminDialog);
+      elements.adminDialogConfirmButton.addEventListener("click", verifyAdmin);
+      elements.adminPasswordToggle.addEventListener("click", () => {
+        const visible = elements.adminPasswordInput.type === "text";
+        setAdminPasswordVisible(!visible);
+        elements.adminPasswordInput.focus();
+      });
+
+      elements.adminDialog.addEventListener("click", (event) => {
+        if (event.target === elements.adminDialog) {
+          closeAdminDialog();
+        }
+      });
+
+      elements.adminPasswordInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          verifyAdmin();
+        }
+      });
+
+      elements.aiSettingsDialogCloseButton.addEventListener(
+        "click",
+        () => closeAiSettingsDialog(),
+      );
+      elements.aiHumanVerificationInput.addEventListener(
+        "change",
+        updateAiSettingsUi,
+      );
+      elements.aiSettingsSaveButton.addEventListener("click", saveAiSettings);
+      elements.autoLabelOpenButton.addEventListener("click", openAutoLabelPreview);
+      elements.autoLabelCloseButton.addEventListener("click", closeAutoLabelDialog);
+      elements.autoLabelCancelButton.addEventListener("click", closeAutoLabelDialog);
+      elements.autoLabelApplyButton.addEventListener("click", applyAutoLabelPreview);
+      elements.autoLabelDialog.addEventListener("click", (event) => {
+        if (event.target === elements.autoLabelDialog) closeAutoLabelDialog();
+      });
+      elements.aiSettingsDialog.addEventListener("click", (event) => {
+        if (event.target === elements.aiSettingsDialog) {
+          closeAiSettingsDialog();
+        }
+      });
 
       elements.deleteDialogCloseButton.addEventListener("click", () => {
         if (!state.deleteSubmitting) {
@@ -2159,15 +5821,64 @@
 
       elements.deleteDialogConfirmButton.addEventListener("click", confirmDelete);
 
-      elements.deletePasswordInput.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          confirmDelete();
+      elements.syncDialogCloseButton.addEventListener("click", () => {
+        closeSyncDialog();
+      });
+      elements.syncDialogCancelButton.addEventListener("click", () => {
+        closeSyncDialog();
+      });
+      elements.syncDialogConfirmButton.addEventListener(
+        "click",
+        startManualSync,
+      );
+      elements.syncReportButton.addEventListener("click", openSyncReports);
+      elements.syncDialog.addEventListener("click", (event) => {
+        if (event.target === elements.syncDialog) {
+          closeSyncDialog();
         }
       });
 
       document.addEventListener("keydown", (event) => {
         if (event.key !== "Escape") {
+          return;
+        }
+
+        if (elements.aiVerificationDialog.classList.contains("visible")) {
+          closeAiVerificationDialog();
+          return;
+        }
+
+        if (elements.adminDialog.classList.contains("visible")) {
+          closeAdminDialog();
+          return;
+        }
+
+        if (elements.labelFilterDialog.classList.contains("visible")) {
+          closeLabelFilterDialog();
+          return;
+        }
+
+        if (elements.sourceFilterDialog.classList.contains("visible")) {
+          closeSourceFilterDialog();
+          return;
+        }
+
+        if (elements.labelManagerDialog.classList.contains("visible")) {
+          closeLabelManagerDialog();
+          return;
+        }
+
+        if (elements.aiSettingsDialog.classList.contains("visible")) {
+          if (elements.autoLabelDialog.classList.contains("visible")) {
+            closeAutoLabelDialog();
+            return;
+          }
+          closeAiSettingsDialog();
+          return;
+        }
+
+        if (elements.syncDialog.classList.contains("visible")) {
+          closeSyncDialog();
           return;
         }
 
@@ -2179,12 +5890,14 @@
         }
 
         if (elements.descriptionDialog.classList.contains("visible")) {
-          closeDescriptionDialog();
+          event.preventDefault();
         }
       });
 
-      elements.refreshButton.addEventListener("click", loadFiles);
-
+      applySearchFromUrl();
+      updateSourceFilterButton();
+      updateAdminUi();
+      loadAiConfig();
       loadFiles();
     </script>
   </body>

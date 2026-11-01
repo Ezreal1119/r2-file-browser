@@ -1,6 +1,6 @@
+import { isAdminPassword } from "../_lib/admin.js";
 import { validateToolKey } from "../_lib/files.js";
-
-const DELETE_PASSWORD = "Patrick1119";
+import { readLabelState, writeLabelState } from "../_lib/labels.js";
 
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -36,7 +36,7 @@ export async function onRequestPost(context) {
     const password =
       payload && typeof payload.password === "string" ? payload.password : "";
 
-    if (password !== DELETE_PASSWORD) {
+    if (!isAdminPassword(password, context.env)) {
       return jsonResponse(
         {
           error: "Unauthorized.",
@@ -46,6 +46,14 @@ export async function onRequestPost(context) {
     }
 
     const key = new URL(context.request.url).searchParams.get("key") || "";
+
+    if (key.startsWith("urovo-en/")) {
+      return jsonResponse(
+        { error: "Synchronized links are managed automatically." },
+        405,
+      );
+    }
+
     const keyError = validateToolKey(key);
 
     if (keyError) {
@@ -59,6 +67,20 @@ export async function onRequestPost(context) {
     }
 
     await bucket.delete(key);
+
+    try {
+      const labels = await readLabelState(bucket);
+      if (labels.assignments[key]) {
+        const assignments = { ...labels.assignments };
+        delete assignments[key];
+        await writeLabelState(bucket, { labels: labels.labels, assignments });
+      }
+    } catch (error) {
+      console.error(
+        "Deleted file but could not clean its label assignment:",
+        error instanceof Error ? error.message : String(error),
+      );
+    }
 
     return jsonResponse({
       key,

@@ -1,10 +1,16 @@
 import {
-  findToolFile,
+  findLibraryFile,
   getDescriptionFromMetadata,
-  listToolFiles,
-  searchToolFiles,
+  listLibraryFiles,
+  searchLibraryFiles,
   toMcpFile,
 } from "./_lib/files.js";
+import { isAiProviderReady, readAiSettings } from "./_lib/ai-config.js";
+import { scopedLibraryFiles } from "./_lib/uploader.js";
+import {
+  AiAgentError,
+  searchLibraryWithPrompt,
+} from "./_lib/ai-agent.js";
 
 const SERVER_INFO = {
   name: "urovo-tools",
@@ -12,8 +18,11 @@ const SERVER_INFO = {
   version: "1.0.0",
 };
 
-const INSTRUCTIONS =
-  "Read-only access to the Urovo tools/firmware library stored under tools/. Use search_files to find files by name (pass a string, or an array of strings to OR terms), get_file for metadata and the public download URL, and get_description for optional notes. Return the url field to users instead of downloading file bytes through these tools.";
+const LEGACY_INSTRUCTIONS =
+  "Read-only access to the Urovo tools and product-document library. Results combine files stored in R2 with synchronized public links from the Urovo English product library. search_files requires a non-empty query and searches file name, product, category, document type, language, and description; get_file returns metadata and a public download URL; get_description returns notes or generated product context. Return the url field to users instead of downloading file bytes through these tools.";
+
+const AI_INSTRUCTIONS =
+  "Authoritative remote search for the Urovo Tools Download catalog. Use search_with_prompt whenever a user asks to find, identify, download, or obtain a link for any Urovo-related resource, including PC tools, utilities, upgrade tools, firmware, SDKs, drivers, software, APKs, demos, specifications, brochures, manuals, pictures, videos, or other product files. These resources are in the remote R2 and synchronized Urovo library, not the caller's local filesystem or workspace. Pass the user's original request unchanged. The server may search up to eight times, ranks authoritative matches, and returns a short LLM-generated comment for every matched file. Return the url field to users instead of downloading file bytes through this tool.";
 
 const SUPPORTED_PROTOCOL_VERSIONS = [
   "2024-11-05",
@@ -25,11 +34,11 @@ const SUPPORTED_PROTOCOL_VERSIONS = [
 
 const DEFAULT_PROTOCOL_VERSION = "2025-03-26";
 
-const TOOLS = [
+const LEGACY_TOOLS = [
   {
     name: "search_files",
     description:
-      "Search Urovo tool/firmware files under tools/. Matching is case-insensitive against file name and key. Pass one string, or an array of strings to OR them together (a file matches if any term hits). An empty query returns the most recently uploaded files. Results include public download URLs, not file contents.",
+      "Search Urovo tool, firmware, and product-document records. A non-empty query is required. Matching is case-insensitive across file name, key, product, category, document type, language, and description. Pass one string or an array. Arrays default to OR for backward compatibility; set match to AND when every term must match.",
     inputSchema: {
       type: "object",
       properties: {
@@ -37,20 +46,25 @@ const TOOLS = [
           anyOf: [
             {
               type: "string",
+              minLength: 1,
+              pattern: "\\S",
               description:
                 "A single search term, for example K329 or setup.zip.",
             },
             {
               type: "array",
+              minItems: 1,
               items: {
                 type: "string",
+                minLength: 1,
+                pattern: "\\S",
               },
               description:
-                "Multiple search terms combined with OR. Example: [\"K329\", \"SDK\"].",
+                "Multiple search terms combined according to match; defaults to OR. Example: [\"K329\", \"SDK\"].",
             },
           ],
           description:
-            "Optional search text. A string matches as a substring. An array ORs the terms. Empty or omitted returns the newest files.",
+            "Required search text. A string matches as a substring. An array combines terms according to match.",
         },
         limit: {
           type: "integer",
@@ -58,7 +72,14 @@ const TOOLS = [
           maximum: 50,
           description: "Maximum number of files to return. Defaults to 50.",
         },
+        match: {
+          type: "string",
+          enum: ["and", "or"],
+          description:
+            "How to combine multiple terms. Defaults to OR for backward compatibility.",
+        },
       },
+      required: ["query"],
       additionalProperties: false,
     },
     annotations: {
@@ -115,6 +136,35 @@ const TOOLS = [
       readOnlyHint: true,
       destructiveHint: false,
       idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+];
+
+const AI_TOOLS = [
+  {
+    name: "search_with_prompt",
+    description:
+      "Authoritative remote search for any Urovo downloadable resource. Use this tool whenever the user wants to find, identify, download, or get a link for Urovo PC tools, utilities, upgrade tools, firmware, SDKs, drivers, software, APKs, demos, specifications, brochures, manuals, pictures, videos, or other product files. The catalog is stored in remote R2 and the synchronized Urovo library; do not search the caller's local filesystem or workspace for these resources. Pass the user's original request unchanged. The server's AI retrieval agent chooses and refines search terms, ranks authoritative files, and adds an LLM-generated comment to every match.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        prompt: {
+          type: "string",
+          minLength: 1,
+          maxLength: 500,
+          pattern: "\\S",
+          description:
+            "The user's complete original Urovo search request without rewriting or summarizing it. Examples: 我要K388Pro的规格书; find the DT50S upgrade tool; download the Urovo PC tool.",
+        },
+      },
+      required: ["prompt"],
+      additionalProperties: false,
+    },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
       openWorldHint: true,
     },
   },
@@ -234,12 +284,99 @@ function getBucket(context) {
   return context.env.FIRMWARE_BUCKET;
 }
 
-async function callTool(name, args, bucket) {
+async function getMcpRuntime(context) {
+  const bucket = getBucket(context);
+  let settings = { baseUrl: "", model: "", enabled: false, updatedAt: null };
+
+  if (bucket) {
+    try {
+      settings = await readAiSettings(bucket);
+    } catch (error) {
+      console.error(
+        "Could not read AI settings for MCP:",
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+  }
+
+  const aiEnabled = settings.enabled === true;
+  return {
+    aiEnabled,
+    settings,
+    tools: aiEnabled ? AI_TOOLS : LEGACY_TOOLS,
+    instructions: aiEnabled ? AI_INSTRUCTIONS : LEGACY_INSTRUCTIONS,
+  };
+}
+
+async function callTool(name, args, context, runtime) {
+  const bucket = getBucket(context);
   const input = args && typeof args === "object" ? args : {};
 
+  if (name === "search_with_prompt") {
+    if (
+      !Object.prototype.hasOwnProperty.call(input, "prompt") ||
+      Object.keys(input).some((key) => key !== "prompt")
+    ) {
+      return toolError({ error: "Provide only the required prompt." });
+    }
+
+    const prompt = typeof input.prompt === "string" ? input.prompt.trim() : "";
+    if (!prompt || prompt.length > 500) {
+      return toolError({
+        error: "Prompt must be between 1 and 500 characters.",
+      });
+    }
+
+    if (!isAiProviderReady(runtime.settings, context.env)) {
+      return toolError({ error: "AI search is not available." });
+    }
+
+    try {
+      const result = await searchLibraryWithPrompt({
+        prompt,
+        bucket,
+        settings: runtime.settings,
+        apiKey: context.env.AI_API_KEY,
+        fetchImpl: context.env.AI_FETCH || fetch,
+        loadLibrary: () => scopedLibraryFiles(context),
+      });
+      return toolResult(result);
+    } catch (error) {
+      console.error(
+        "MCP AI search failed:",
+        error instanceof Error ? error.message : String(error),
+      );
+      if (error instanceof AiAgentError) {
+        return toolError({
+          error: error.code === "incompatible"
+            ? "The configured AI model is not compatible with this search agent."
+            : error.code === "timeout"
+              ? "AI search timed out. Please try again."
+              : "The AI provider is temporarily unavailable.",
+        });
+      }
+      return toolError({ error: "AI search is temporarily unavailable." });
+    }
+  }
+
   if (name === "search_files") {
-    const files = await listToolFiles(bucket);
-    return toolResult(searchToolFiles(files, input.query, input.limit));
+    const queryTerms = (Array.isArray(input.query)
+      ? input.query
+      : [input.query]
+    )
+      .map((value) => String(value || "").trim())
+      .filter(Boolean);
+
+    if (queryTerms.length === 0) {
+      return toolError({
+        error: "A non-empty query is required.",
+      });
+    }
+
+    const files = await scopedLibraryFiles(context);
+    return toolResult(
+      searchLibraryFiles(files, input.query, input.limit, input.match),
+    );
   }
 
   if (name === "get_file") {
@@ -249,7 +386,7 @@ async function callTool(name, args, bucket) {
       });
     }
 
-    const found = await findToolFile(bucket, input);
+    const found = await findLibraryFile(bucket, input, () => scopedLibraryFiles(context));
 
     if (found.error) {
       return toolError({
@@ -268,7 +405,7 @@ async function callTool(name, args, bucket) {
       });
     }
 
-    const found = await findToolFile(bucket, input);
+    const found = await findLibraryFile(bucket, input, () => scopedLibraryFiles(context));
 
     if (found.error) {
       return toolError({
@@ -277,26 +414,26 @@ async function callTool(name, args, bucket) {
       });
     }
 
-    const object = await bucket.head(found.file.key);
-
-    if (!object) {
-      return toolError({
-        error: "File not found.",
-      });
-    }
+    const description = found.file.external || found.file.source === "uploader"
+      ? found.file.description || ""
+      : getDescriptionFromMetadata(
+          (await bucket.head(found.file.key))?.customMetadata,
+        );
 
     return toolResult({
       key: found.file.key,
       name: found.file.name,
       url: found.file.url,
-      description: getDescriptionFromMetadata(object.customMetadata),
+      source: found.file.source,
+      description,
+      readOnly: Boolean(found.file.external),
     });
   }
 
   return null;
 }
 
-async function handleRpc(message, context, protocolVersion) {
+async function handleRpc(message, context, protocolVersion, runtime) {
   if (!message || typeof message !== "object" || Array.isArray(message)) {
     return {
       httpStatus: 400,
@@ -344,7 +481,7 @@ async function handleRpc(message, context, protocolVersion) {
           },
         },
         serverInfo: SERVER_INFO,
-        instructions: INSTRUCTIONS,
+        instructions: runtime.instructions,
       }),
       sessionId: crypto.randomUUID(),
       protocolVersion: negotiateProtocolVersion(requested),
@@ -362,7 +499,7 @@ async function handleRpc(message, context, protocolVersion) {
     return {
       httpStatus: 200,
       body: rpcResult(id, {
-        tools: TOOLS,
+        tools: runtime.tools,
       }),
     };
   }
@@ -381,7 +518,7 @@ async function handleRpc(message, context, protocolVersion) {
       };
     }
 
-    if (!TOOLS.some((tool) => tool.name === name)) {
+    if (!runtime.tools.some((tool) => tool.name === name)) {
       return {
         httpStatus: 200,
         body: rpcError(id, -32602, "Invalid params", {
@@ -405,7 +542,7 @@ async function handleRpc(message, context, protocolVersion) {
     }
 
     try {
-      const result = await callTool(name, args, bucket);
+      const result = await callTool(name, args, context, runtime);
 
       if (!result) {
         return {
@@ -467,6 +604,14 @@ function protocolHeaders(request, sessionId, protocolVersion) {
 
 export async function onRequest(context) {
   const { request } = context;
+  const pathname = new URL(request.url).pathname.replace(/\/+$/, "") || "/";
+
+  if (pathname !== "/ai-powered/mcp") {
+    return new Response("Not Found", {
+      status: 404,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
+  }
 
   if (request.method === "OPTIONS") {
     return new Response(null, {
@@ -486,6 +631,8 @@ export async function onRequest(context) {
       }),
     );
   }
+
+  const runtime = await getMcpRuntime(context);
 
   if (request.method === "GET") {
     const accept = request.headers.get("Accept") || "";
@@ -509,7 +656,7 @@ export async function onRequest(context) {
       version: SERVER_INFO.version,
       protocol: "mcp",
       transport: "streamable-http",
-      tools: TOOLS.map((tool) => tool.name),
+      tools: runtime.tools.map((tool) => tool.name),
       usage:
         "POST JSON-RPC messages to this URL from an MCP client. This is a read-only Urovo tools library.",
     });
@@ -547,7 +694,12 @@ export async function onRequest(context) {
   let status = 200;
 
   for (const message of messages) {
-    const handled = await handleRpc(message, context, protocolVersion);
+    const handled = await handleRpc(
+      message,
+      context,
+      protocolVersion,
+      runtime,
+    );
 
     if (handled.sessionId) {
       sessionId = handled.sessionId;

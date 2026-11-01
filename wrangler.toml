@@ -1,0 +1,34 @@
+# Downloaded from the existing Pages project and extended for AI search.
+# This file is the source of truth for production Pages bindings.
+name = "r2-file-browser"
+pages_build_output_dir = "./public"
+compatibility_date = "2026-06-10"
+
+# Local development uses the same binding names/IDs but separate local storage.
+[[r2_buckets]]
+binding = "FIRMWARE_BUCKET"
+bucket_name = "firmware"
+
+[[r2_buckets]]
+binding = "UPLOADER_BUCKET"
+bucket_name = "r2-file-browser-uploader"
+
+[[d1_databases]]
+binding = "AI_DB"
+database_name = "r2-file-browser-ai"
+database_id = "0e6af0bc-657d-4ee9-adda-9c00ebdd5184"
+migrations_dir = "migrations"
+
+[[env.production.r2_buckets]]
+binding = "FIRMWARE_BUCKET"
+bucket_name = "firmware"
+
+[[env.production.r2_buckets]]
+binding = "UPLOADER_BUCKET"
+bucket_name = "r2-file-browser-uploader"
+
+[[env.production.d1_databases]]
+binding = "AI_DB"
+database_name = "r2-file-browser-ai"
+database_id = "0e6af0bc-657d-4ee9-adda-9c00ebdd5184"
+migrations_dir = "migrations"

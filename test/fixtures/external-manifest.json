@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "source": "urovo-en",
+  "runId": "browser-fixture",
+  "generatedAt": "2026-08-22T00:00:00.000Z",
+  "count": 2,
+  "records": [
+    {
+      "key": "urovo-en/114/specs/dt630-specs.pdf",
+      "name": "DT630 Product Specs.pdf",
+      "size": 1572864,
+      "url": "https://downloads.example.com/DT630_Product_Specs.pdf",
+      "description": "Product: DT630; Category: Mobile Computers; Type: Specs; File: DT630 Product Specs.pdf; Updated: 2026-08-20; Language: English.",
+      "source": "urovo-en",
+      "product": "DT630",
+      "category": "Mobile Computers",
+      "documentType": "Specs",
+      "language": "en",
+      "sourcePageUrl": "https://file.en.urovo.com/Products/info/114.html",
+      "sourceUpdatedAt": "2026-08-20T00:00:00.000Z",
+      "firstSeenAt": "2026-08-22T00:00:00.000Z",
+      "lastSeenAt": "2026-08-22T00:00:00.000Z",
+      "displayPath": "DT630 / Specs / DT630 Product Specs.pdf"
+    },
+    {
+      "key": "urovo-en/114/brochure/dt630-brochure.pdf",
+      "name": "DT630 Brochure.pdf",
+      "size": null,
+      "url": "https://downloads.example.com/DT630_Brochure.pdf",
+      "description": "Product: DT630; Category: Mobile Computers; Type: Brochure; File: DT630 Brochure.pdf; First indexed: 2026-08-22; Language: English.",
+      "source": "urovo-en",
+      "product": "DT630",
+      "category": "Mobile Computers",
+      "documentType": "Brochure",
+      "language": "en",
+      "sourcePageUrl": "https://file.en.urovo.com/Products/info/114.html",
+      "sourceUpdatedAt": null,
+      "firstSeenAt": "2026-08-22T00:00:00.000Z",
+      "lastSeenAt": "2026-08-22T00:00:00.000Z",
+      "displayPath": "DT630 / Brochure / DT630 Brochure.pdf"
+    }
+  ]
+}

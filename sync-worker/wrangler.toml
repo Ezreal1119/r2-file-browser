@@ -1,0 +1,24 @@
+name = "urovo-library-sync"
+main = "src/index.mjs"
+compatibility_date = "2026-06-10"
+
+# Run every Sunday at 03:00 Asia/Shanghai (Saturday 19:00 UTC).
+# Sync can also be started manually from the Pages Admin interface.
+[triggers]
+crons = ["0 19 * * 6", "10 19 * * *"]
+# GitHub SDKs: daily at 03:10 Asia/Shanghai; independent of the weekly catalog.
+
+[[r2_buckets]]
+binding = "FIRMWARE_BUCKET"
+bucket_name = "firmware"
+
+[[queues.producers]]
+binding = "SYNC_QUEUE"
+queue = "urovo-library-sync"
+
+[[queues.consumers]]
+queue = "urovo-library-sync"
+max_batch_size = 1
+max_batch_timeout = 1
+max_retries = 5
+max_concurrency = 1
