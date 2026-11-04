@@ -1,4 +1,5 @@
 import { uploadRecord, validUploadId } from "./uploader.js";
+import { putUploaderRecord } from "./uploader-records.js";
 
 export class FirmwareError extends Error {
   constructor(message, status = 502) { super(message); this.status = status; }
@@ -99,7 +100,7 @@ export async function registerFirmware(context, filename, query) {
     description: existing ? existing.description : `Product: ${query.internal_model}; Type: RD PRO OS firmware; File: ${filename}; Firmware date: 20${query.date.slice(0, 2)}-${query.date.slice(2, 4)}-${query.date.slice(4, 6)}; Index: ${query.index}.`,
   };
   if (!existing || existing.etag !== record.etag || existing.size !== record.size) {
-    await context.env.UPLOADER_BUCKET.put(`records/${id}`, JSON.stringify(record));
+    await putUploaderRecord(context.env.UPLOADER_BUCKET, record);
   }
   return uploadRecord(record, new URL(context.request.url).origin);
 }

@@ -1,5 +1,6 @@
 import { listLibraryFiles } from "./files.js";
 import { readLabelState, assignLabelsToFiles } from "./labels.js";
+import { indexedUploaderRecord, backfillUploaderRecord } from "./uploader-records.js";
 
 export function isUploaderPassword(value, env) {
   const expected = env?.UPLOADER_PASSWORD;
@@ -47,35 +48,50 @@ export function uploadRecord(record, origin) {
   };
 }
 
-export async function listUploaderFiles(bucket, origin) {
+export async function listUploaderFiles(bucket, origin, waitUntil) {
   if (!bucket) throw new Error("Uploader storage is unavailable.");
   const objects = [];
   let cursor;
   do {
-    const page = await bucket.list({ prefix: "records/", cursor });
+    const page = await bucket.list({ prefix: "records/", cursor, include: ["customMetadata"] });
     objects.push(...page.objects);
     cursor = page.truncated ? page.cursor : undefined;
   } while (cursor);
-  const records = [];
-  // Bounded reads: metadata stays separate from multi-gigabyte file bodies.
-  for (let i = 0; i < objects.length; i += 10) {
-    const batch = await Promise.all(objects.slice(i, i + 10).map(async object => {
-      const value = await bucket.get(object.key);
-      return value ? value.json() : null;
-    }));
-    records.push(...batch.filter(Boolean).map(record => uploadRecord(record, origin)));
+  const records = new Map();
+  const fallback = [];
+  for (const object of objects) {
+    const indexed = indexedUploaderRecord(object);
+    if (indexed) records.set(object.key, indexed);
+    else fallback.push(object);
   }
-  return records;
+  // Only legacy/oversized records need bounded individual reads.
+  for (let i = 0; i < fallback.length; i += 10) {
+    const batch = await Promise.all(fallback.slice(i, i + 10).map(async object => {
+      const value = await bucket.get(object.key);
+      if (!value) return null;
+      const record = await value.json();
+      if (`records/${record.id}` === object.key) backfillUploaderRecord(bucket, value, record, waitUntil);
+      return { key: object.key, record };
+    }));
+    for (const entry of batch.filter(Boolean)) records.set(entry.key, entry.record);
+  }
+  return objects.map(object => records.get(object.key)).filter(Boolean).map(record => uploadRecord(record, origin));
+}
+
+export async function librarySnapshot(context) {
+  const labelStatePromise = readLabelState(context.env.FIRMWARE_BUCKET);
+  const [files, uploads, labelState] = await Promise.all([
+    listLibraryFiles(context.env.FIRMWARE_BUCKET, { labelState: labelStatePromise }),
+    context.env.UPLOADER_BUCKET
+      ? listUploaderFiles(context.env.UPLOADER_BUCKET, new URL(context.request.url).origin, typeof context.waitUntil === "function" ? context.waitUntil.bind(context) : undefined)
+      : [],
+    labelStatePromise,
+  ]);
+  return { files: files.concat(assignLabelsToFiles(uploads, labelState)), labels: labelState.labels };
 }
 
 export async function scopedLibraryFiles(context) {
-  const [files, uploads] = await Promise.all([
-    listLibraryFiles(context.env.FIRMWARE_BUCKET),
-    context.env.UPLOADER_BUCKET
-      ? listUploaderFiles(context.env.UPLOADER_BUCKET, new URL(context.request.url).origin)
-      : [],
-  ]);
-  return files.concat(uploads.length ? assignLabelsToFiles(uploads, await readLabelState(context.env.FIRMWARE_BUCKET)) : []);
+  return (await librarySnapshot(context)).files;
 }
 
 export function uploaderJson(data, status = 200) {

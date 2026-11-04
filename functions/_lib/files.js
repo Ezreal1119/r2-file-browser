@@ -292,11 +292,11 @@ export async function listExternalFiles(bucket) {
   return files;
 }
 
-export async function listLibraryFiles(bucket) {
+export async function listLibraryFiles(bucket, options = {}) {
   const [toolFiles, externalFiles, labelState, descriptionOverrideState] = await Promise.all([
     listToolFiles(bucket),
     listExternalFiles(bucket),
-    readLabelState(bucket),
+    options.labelState || readLabelState(bucket),
     readDescriptionOverrideState(bucket),
   ]);
 

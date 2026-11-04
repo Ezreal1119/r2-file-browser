@@ -2758,6 +2758,8 @@
         filteredFiles: [],
         displayedFiles: [],
         loading: false,
+        filesReady: false,
+        filesError: "",
         searchMode: "and",
         sourceFilter: "all",
         sourceFilterDraft: "all",
@@ -4612,9 +4614,7 @@
           };
         } finally {
           state.aiConfigLoading = false;
-          if (!state.loading && elements.searchInput.value.trim() === "") {
-            renderFiles();
-          }
+          renderFiles();
         }
       }
 
@@ -4702,7 +4702,7 @@
       function renderAiComposer() {
         closeAiVerificationDialog();
         elements.summaryPath.textContent = "AI-assisted product search";
-        elements.summaryCount.textContent = `${state.files.length} indexed`;
+        updateDirectoryCount();
         elements.pagination.classList.add("hidden");
 
         if (state.aiConfigLoading) {
@@ -5086,7 +5086,13 @@
         elements.nextPageButton.disabled = state.currentPage >= totalPages;
       }
 
-      function renderFiles() {
+      function updateDirectoryCount() {
+        elements.summaryCount.textContent = state.filesReady
+          ? `${state.files.length} indexed`
+          : state.filesError ? "Directory unavailable" : "Loading directory…";
+      }
+
+      function renderFiles({ preserveComposer = false } = {}) {
         const terms = parseSearchTerms(elements.searchInput.value.trim());
         const labelFilters = state.selectedLabelFilters;
         const uploaderMode = Boolean(state.uploaderToken) && !state.isAdmin;
@@ -5099,7 +5105,27 @@
         ) {
           state.filteredFiles = [];
           state.displayedFiles = [];
-          renderAiHome();
+          if (preserveComposer && state.aiView === "composer" && document.getElementById("aiSearchForm")) {
+            // A background directory response must not replace a focused textarea
+            // or interrupt an in-progress IME composition/verification dialog.
+            updateDirectoryCount();
+          } else {
+            renderAiHome();
+          }
+          return;
+        }
+
+        if (!state.filesReady) {
+          elements.pagination.classList.add("hidden");
+          if (state.filesError) {
+            elements.summaryPath.textContent = "Unable to load R2 files";
+            elements.summaryCount.textContent = "";
+            renderState(icons.error, "Could not load files", state.filesError);
+          } else {
+            elements.summaryPath.textContent = "Loading R2 files…";
+            elements.summaryCount.textContent = "";
+            renderLoading();
+          }
           return;
         }
 
@@ -5419,37 +5445,22 @@
         }
 
         state.loading = true;
+        state.filesError = "";
         const requestRole = state.uploaderToken;
-        elements.summaryPath.textContent = "Loading R2 files…";
-        elements.summaryCount.textContent = "";
-
-        renderLoading();
+        elements.labelFilterButton.disabled = !state.filesReady;
+        renderFiles({ preserveComposer: true });
 
         try {
-          const [response, labelsResponse] = await Promise.all([
-            fetch("/api/files", {
-              headers: { Accept: "application/json", ...uploaderHeaders() },
-              cache: "no-store",
-            }),
-            fetch("/api/labels", {
-              headers: { Accept: "application/json" },
-              cache: "no-store",
-            }),
-          ]);
-
-          const [payload, labelsPayload] = await Promise.all([
-            response.json(),
-            labelsResponse.json(),
-          ]);
+          const response = await fetch("/api/files", {
+            headers: { Accept: "application/json", ...uploaderHeaders() },
+            cache: "no-store",
+          });
+          const payload = await response.json();
 
           if (!response.ok) {
             throw new Error(
               payload.detail || payload.error || "Request failed",
             );
-          }
-
-          if (!labelsResponse.ok) {
-            throw new Error(labelsPayload.error || "Could not load labels.");
           }
 
           if (requestRole !== state.uploaderToken) {
@@ -5458,34 +5469,28 @@
             return;
           }
           state.files = Array.isArray(payload.files) ? payload.files : [];
-          applyAvailableLabels(labelsPayload.labels);
+          state.filesReady = true;
+          applyAvailableLabels(payload.labels);
           state.descriptionCache = Object.fromEntries(
             state.files
               .filter((file) => typeof file.description === "string")
               .map((file) => [file.key, file.description]),
           );
 
-          elements.summaryPath.textContent = "R2 + Urovo Product Library";
           elements.lastSyncText.textContent = payload.sync?.completedAt
             ? `Last synced: ${formatDate(payload.sync.completedAt)}`
             : "Last synced: —";
 
-          renderFiles();
+          renderFiles({ preserveComposer: true });
         } catch (error) {
           console.error(error);
 
-          elements.summaryPath.textContent = "Unable to load R2 files";
-          elements.summaryCount.textContent = "";
-
-          renderState(
-            icons.error,
-            "Could not load files",
-            error instanceof Error
-              ? error.message
-              : "An unexpected error occurred.",
-          );
+          state.filesReady = false;
+          state.filesError = error instanceof Error ? error.message : "An unexpected error occurred.";
+          renderFiles({ preserveComposer: true });
         } finally {
           state.loading = false;
+          elements.labelFilterButton.disabled = !state.filesReady;
         }
       }
 

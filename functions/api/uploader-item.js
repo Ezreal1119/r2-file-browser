@@ -1,6 +1,7 @@
 import { isUploader, uploaderId, uploaderJson as json } from "../_lib/uploader.js";
 import { readLabelState, writeLabelState } from "../_lib/labels.js";
 import { firmwareObjectLocation } from "../_lib/firmware.js";
+import { putUploaderRecord } from "../_lib/uploader-records.js";
 
 export async function onRequest(context) {
   if (context.request.method !== "GET" && !(await isUploader(context.request, context.env))) return json({ error: "Uploader session expired. Unlock again." }, 401);
@@ -17,7 +18,7 @@ export async function onRequest(context) {
       const { description } = await context.request.json();
       if (typeof description !== "string" || description.trim().length > 1500) return json({ error: "Description must be at most 1500 characters." }, 400);
       record.description = description.trim();
-      await bucket.put(`records/${id}`, JSON.stringify(record));
+      await putUploaderRecord(bucket, record);
       return json({ description: record.description });
     }
     if (context.request.method === "DELETE") {

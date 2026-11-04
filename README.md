@@ -165,6 +165,7 @@ expires after 180 seconds. MCP remains unchanged and does not use Turnstile.
 - New files are **publicly searchable** through ordinary search, AI search, HTTP `/api/files`, and both MCP modes. They carry an **UPLOADER FILE** badge. Anyone with the download link can download without logging in.
 - The dedicated Uploader view does not show the AI composer. With an empty search field it lists only files from the uploader bucket; after a keyword is entered it searches the entire unified library and pins matching uploader-bucket files ahead of other results. This presentation rule applies only to Uploader mode; public and Admin views are unchanged.
 - Binary files and their Description records live in the separate `r2-file-browser-uploader` bucket (`UPLOADER_BUCKET`). Description editing never rewrites the binary. Existing tools upload/download endpoints are unchanged.
+- Small uploader JSON records carry an atomic, derived list index in R2 custom metadata. Listing requests use `include: ["customMetadata"]` to avoid a GET for every record; oversized descriptions and legacy/invalid metadata fall back to the original JSON reads. Legacy sidecars are indexed best-effort in `waitUntil` with an ETag condition, so backfill cannot overwrite edits or resurrect deletions. Upload completion, Description saves and firmware registration update the JSON and its list metadata together; no binary rewrite or separate aggregate index is needed.
 - The upload dialog accepts an optional Description (up to 1500 characters) below the file selector. It is locked during transfer and published together with the file's record in the existing completion request, without a separate save request. Failed uploads retain the draft for retry; a successful upload clears it and closes the dialog. Omitting it preserves the existing blank-description behavior.
 - Upload one file at a time, up to **5 GiB**, with fixed 16 MiB parts. Transfers start with three parallel requests and adapt within **2–4**: a fourth request is trialled after successful parts and a usable throughput window; it is kept only with at least a 10% throughput gain. Retries reduce concurrency and apply a 30-second recovery cooldown; existing transfers finish normally when the limit drops.
 - Failed parts retry up to three times using exponential backoff with jitter. Rate-limit responses pause new attempts, using `Retry-After` when supplied (automatic waits are capped at 30 seconds); permanent 4xx failures stop immediately. Start/finalize/cancel requests have a 30-second timeout. Closing the upload interrupts backoff immediately. **Retry upload** keeps completed parts while the page remains open; this version does not resume across a page refresh or browser restart.
@@ -350,6 +351,16 @@ status and report (including descriptions and public download links). Both
 use the existing `X-Admin-Password` header. Worker `/sdk-sync` and `/sdk-status`
 use the existing `SYNC_TOKEN`, which never reaches the browser. No new UI
 controls or changes to the existing Sync Reports are required.
+
+## Initial loading
+
+The initial web AI composer does not wait for the full directory response.
+Ordinary keyword/label/source searches still wait for real directory data,
+and directory failures are shown rather than treated as empty results.
+`/api/files` returns the available `labels` alongside files, sharing one label
+read across uploaded and synchronized records. Responses remain uncached;
+`Server-Timing: library` measures backend library assembly. Background directory
+completion preserves the active AI textarea, its draft and IME/focus state.
 
 ## MCP
 

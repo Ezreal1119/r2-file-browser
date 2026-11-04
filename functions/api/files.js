@@ -1,23 +1,24 @@
 import {
   EXTERNAL_STATUS_KEY,
   filterLibraryFiles,
-  listLibraryFiles,
   PREFIX,
 } from "../_lib/files.js";
-import { scopedLibraryFiles } from "../_lib/uploader.js";
+import { librarySnapshot } from "../_lib/uploader.js";
 
-function jsonResponse(data, status = 200) {
+function jsonResponse(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
       "Cache-Control": "private, no-store",
       "Vary": "X-Uploader-Token",
+      ...headers,
     },
   });
 }
 
 export async function onRequestGet(context) {
+  const startedAt = performance.now();
   try {
     const bucket = context.env.FIRMWARE_BUCKET;
     const requestUrl = new URL(
@@ -38,8 +39,8 @@ export async function onRequestGet(context) {
       );
     }
 
-    const [files, statusObject] = await Promise.all([
-      scopedLibraryFiles(context),
+    const [{ files, labels }, statusObject] = await Promise.all([
+      librarySnapshot(context),
       bucket.get(EXTERNAL_STATUS_KEY),
     ]);
     let sync = null;
@@ -68,6 +69,7 @@ export async function onRequestGet(context) {
       query,
       match,
       sync,
+      labels,
       files: filteredFiles.map(
         ({
           key,
@@ -113,7 +115,7 @@ export async function onRequestGet(context) {
           ...(originType ? { originType } : {}),
         }),
       ),
-    });
+    }, 200, { "Server-Timing": `library;dur=${(performance.now() - startedAt).toFixed(1)}` });
   } catch (error) {
     console.error("Failed to list R2 files:", error);
 

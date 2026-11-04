@@ -6,6 +6,7 @@ const origin = "https://tool-files.patrick-shenzhen.org";
 let id;
 let token;
 let completed = false;
+let name;
 async function request(path, { method = "GET", json, bytes, auth = token, headers = {} } = {}) {
   const response = await fetch(origin + path, {
     method, signal: AbortSignal.timeout(120000),
@@ -25,7 +26,7 @@ try {
   assert.equal(uploader.role, "uploader");
   token = uploader.token;
   assert.ok(token);
-  const name = `codex-uploader-smoke-${crypto.randomUUID()}.bin`;
+  name = `codex-uploader-smoke-${crypto.randomUUID()}.bin`;
   const description = `上传说明 smoke-description-${crypto.randomUUID()}\nTemporary description integration test.`;
   const size = 17 * 1024 * 1024;
   const session = await jsonRequest("/api/uploader-upload?action=start", { method: "POST", json: { name, size } });
@@ -51,6 +52,7 @@ try {
   assert.ok(admin.token);
   await jsonRequest(itemPath, { method: "PUT", auth: admin.token, json: { description: "Temporary upload integration smoke test." } });
   assert.equal((await jsonRequest(itemPath, { auth: "" })).description, "Temporary upload integration smoke test.");
+  assert.equal((await jsonRequest(`/api/files?query=${name}`, { auth: "" })).files[0].description, "Temporary upload integration smoke test.");
   const path = new URL(publicList.files[0].url).pathname;
   const head = await request(path, { method: "HEAD", auth: "" });
   assert.equal(head.status, 200);
@@ -62,6 +64,7 @@ try {
 } finally {
   if (id && token) {
     await jsonRequest(completed ? `/api/uploader-item?key=${encodeURIComponent(`uploader/${id}`)}` : `/api/uploader-upload?id=${id}`, { method: "DELETE" });
+    if (completed) assert.equal((await jsonRequest(`/api/files?query=${name}`, { auth: "" })).count, 0);
     console.log("Temporary smoke-test upload removed.");
   }
 }

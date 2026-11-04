@@ -1,4 +1,5 @@
 import { isUploader, MAX_UPLOAD_SIZE, PART_SIZE, validUploadId, uploaderJson as json } from "../_lib/uploader.js";
+import { putUploaderRecord } from "../_lib/uploader-records.js";
 
 export async function onRequest(context) {
   if (!(await isUploader(context.request, context.env))) return json({ error: "Uploader session expired. Unlock again." }, 401);
@@ -56,7 +57,7 @@ export async function onRequest(context) {
       // A previous completion may have succeeded even if its HTTP response was lost.
       const object = await bucket.head(`objects/${id}`) || await multipart.complete(parts);
       if (object.size !== session.size) return json({ error: "Uploaded size does not match. Cancel and retry." }, 409);
-      await bucket.put(`records/${id}`, JSON.stringify({ id, name: session.name, size: object.size, etag: object.etag, uploaded: object.uploaded.toISOString(), description: description.trim() }));
+      await putUploaderRecord(bucket, { id, name: session.name, size: object.size, etag: object.etag, uploaded: object.uploaded.toISOString(), description: description.trim() });
       return json({ completed: true, id });
     }
     return json({ error: "Method not allowed." }, 405);
